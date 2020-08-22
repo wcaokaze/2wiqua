@@ -19,3 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# kotlinx.serialization
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.SerializationKt
+-keep,includedescriptorclasses class com.wcaokaze.android.twiqua.**$$serializer { *; }
+-keepclassmembers class com.wcaokaze.android.twiqua.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.wcaokaze.android.twiqua.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
