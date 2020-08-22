@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-include ':app'
 rootProject.name = "2wiqua"
+
+include ':shared'
+include ':app'
 
 include 'Cac7er'
 include 'Cac7er-Vue'
