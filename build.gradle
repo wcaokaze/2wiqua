@@ -43,6 +43,21 @@ allprojects {
             ]
         }
     }
+
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute module("com.wcaokaze:cac7er:0.8.0") with project(':Cac7er')
+            substitute module("com.wcaokaze:cac7er-vue:0.8.0") with project(':Cac7er-Vue')
+            substitute module("com.wcaokaze.koshian:koshian-core:0.6.0") with project(':koshian-core')
+            substitute module("com.wcaokaze.koshian:koshian-androidx:0.6.0") with project(':koshian-androidx')
+            substitute module("com.wcaokaze.koshian:koshian-recyclerview:0.6.0") with project(':koshian-recyclerview')
+            substitute module("com.wcaokaze.vue.android:vue-android-core:0.2.0") with project(':vue-android-core')
+            substitute module("com.wcaokaze.vue.android:vue-android-stream:0.2.0") with project(':vue-android-stream')
+            substitute module("com.wcaokaze.vue.android:vue-android-androidx:0.2.0") with project(':vue-android-androidx')
+            substitute module("com.wcaokaze.vue.android:vue-android-koshian:0.2.0") with project(':vue-android-koshian')
+            substitute module("com.wcaokaze.vue.android:vue-android-koshian-recyclerview:0.2.0") with project(':vue-android-koshian-recyclerview')
+        }
+    }
 }
 
 task clean(type: Delete) {

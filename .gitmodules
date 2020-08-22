@@ -1,0 +1,9 @@
+[submodule "Cac7er"]
+	path = Cac7er
+	url = ssh://github.com/wcaokaze/Cac7er.git
+[submodule "Vue.android"]
+	path = Vue.android
+	url = ssh://github.com/wcaokaze/Vue.android.git
+[submodule "Koshian"]
+	path = Koshian
+	url = ssh://github.com/wcaokaze/Koshian.git
