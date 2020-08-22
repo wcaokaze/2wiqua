@@ -20,4 +20,5 @@ apply plugin: 'kotlin'
 dependencies {
     api project(':Cac7er')
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+    api project(':EfficientCoroutines')
 }

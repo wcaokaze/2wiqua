@@ -19,6 +19,8 @@ rootProject.name = "2wiqua"
 include ':shared'
 include ':app'
 
+include ':EfficientCoroutines'
+
 include 'Cac7er'
 include 'Cac7er-Vue'
 project(':Cac7er')    .projectDir = file('Cac7er/cac7er')
