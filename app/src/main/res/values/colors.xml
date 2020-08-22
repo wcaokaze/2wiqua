@@ -15,4 +15,5 @@
   -->
 
 <resources>
+    <color name="ic_launcher_background">#fffafafa</color>
 </resources>
