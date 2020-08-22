@@ -24,7 +24,7 @@ import java.util.*
  * 常に実行環境のデフォルトタイムゾーンの時刻を表すものとします
  */
 inline class LocalDateTime(val timeMillis: Long) : Serializable, Comparable<LocalDateTime> {
-    constructor(date: Date) : this(date.time)
+   constructor(date: Date) : this(date.time)
 
-    override fun compareTo(other: LocalDateTime) = timeMillis.compareTo(other.timeMillis)
+   override fun compareTo(other: LocalDateTime) = timeMillis.compareTo(other.timeMillis)
 }
