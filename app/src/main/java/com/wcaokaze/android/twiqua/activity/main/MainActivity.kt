@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
-apply plugin: 'kotlin'
-apply plugin: 'kotlinx-serialization'
+package com.wcaokaze.android.twiqua.activity.main
 
-dependencies {
-    implementation project(':shared')
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version"
-}
+import android.app.Activity
+
+class MainActivity : Activity()

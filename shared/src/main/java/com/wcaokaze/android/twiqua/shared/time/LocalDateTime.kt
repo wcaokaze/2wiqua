@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
-apply plugin: 'kotlin'
-apply plugin: 'kotlinx-serialization'
+package com.wcaokaze.android.twiqua.shared.time
 
-dependencies {
-    implementation project(':shared')
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version"
+import java.io.Serializable
+import java.util.*
+
+/**
+ * [java.util.Date]とほぼ同じ。タイムゾーンの概念を持たず
+ * 常に実行環境のデフォルトタイムゾーンの時刻を表すものとします
+ */
+inline class LocalDateTime(val timeMillis: Long) : Serializable, Comparable<LocalDateTime> {
+   constructor(date: Date) : this(date.time)
+
+   override fun compareTo(other: LocalDateTime) = timeMillis.compareTo(other.timeMillis)
 }

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
-apply plugin: 'kotlin'
-apply plugin: 'kotlinx-serialization'
+package com.wcaokaze.android.twiqua.shared.net
 
-dependencies {
-    implementation project(':shared')
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version"
-}
+import java.io.Serializable
+
+/**
+ * [java.net.URL]がコンストラクタでURLの形式をチェックしたり
+ * equalsでIPアドレスの解決をするのでとても遅く、
+ * しかもほとんどのケースでそんな動作は不要なのでなるべくこっちを使います
+ */
+inline class Url(val asString: String) : Serializable
