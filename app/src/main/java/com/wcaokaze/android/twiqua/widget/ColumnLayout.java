@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package com.wcaokaze.android.twiqua.activity.main
+package com.wcaokaze.android.twiqua.widget;
 
-import android.app.Activity
-import android.os.Bundle
-import com.wcaokaze.android.twiqua.widget.ColumnLayout
-import koshian.*
+import android.content.Context;
+import android.widget.FrameLayout;
 
-class MainActivity : Activity() {
-   override fun onCreate(savedInstanceState: Bundle?) {
-      super.onCreate(savedInstanceState)
-      buildLayout()
-   }
-
-   private fun buildLayout() {
-      val contextView = koshian(this) {
-         ColumnLayout {}
-      }
-
-      setContentView(contextView)
+public final class ColumnLayout extends FrameLayout {
+   public ColumnLayout(final Context context) {
+      super(context);
    }
 }
