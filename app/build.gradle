@@ -41,6 +41,8 @@ android {
 }
 
 dependencies {
+    implementation project(':mastodon')
+    implementation project(':twitter')
     implementation project(':shared')
 
     implementation 'com.wcaokaze:cac7er-vue:0.8.0'

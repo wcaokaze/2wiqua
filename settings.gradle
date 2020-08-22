@@ -17,6 +17,8 @@
 rootProject.name = "2wiqua"
 
 include ':shared'
+include ':mastodon'
+include ':twitter'
 include ':app'
 
 include ':EfficientCoroutines'
