@@ -41,7 +41,6 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'com.wcaokaze:cac7er-vue:0.8.0'
     implementation 'com.wcaokaze.koshian:koshian-androidx:0.6.0'
     implementation 'com.wcaokaze.koshian:koshian-recyclerview:0.6.0'
