@@ -18,7 +18,7 @@ package com.wcaokaze.android.twiqua.activity.main
 
 import android.app.Activity
 import android.os.Bundle
-import com.wcaokaze.android.twiqua.widget.ColumnLayout
+import com.wcaokaze.android.twiqua.activity.main.widget.ColumnLayout
 import koshian.*
 
 class MainActivity : Activity() {

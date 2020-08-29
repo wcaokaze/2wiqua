@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wcaokaze.android.twiqua.widget;
+package com.wcaokaze.android.twiqua.activity.main.widget;
 
 import android.content.Context;
 import android.view.MotionEvent;
