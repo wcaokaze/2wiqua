@@ -41,6 +41,7 @@ public final class ColumnLayout extends FrameLayout {
    private float mInitialMotionY;
 
    private final View mChild;
+   private int mPosition = 0;
 
    public ColumnLayout(final Context context) {
       super(context);
@@ -210,7 +211,8 @@ public final class ColumnLayout extends FrameLayout {
    }
 
    private void performDrag(final float x, final float dx) {
-      mChild.setTranslationX(x);
+      mPosition -= dx;
+      mChild.setTranslationX(mPosition);
    }
 
    private void resetTouch() {
