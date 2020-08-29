@@ -15,7 +15,7 @@
  */
 
 @file:Suppress("UNUSED")
-package com.wcaokaze.android.twiqua.activity.main.widget
+package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout
 
 import android.content.Context
 import koshian.*
