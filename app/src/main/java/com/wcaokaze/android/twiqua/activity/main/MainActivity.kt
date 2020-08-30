@@ -17,11 +17,35 @@
 package com.wcaokaze.android.twiqua.activity.main
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.ColumnLayout
+import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.ColumnLayoutAdapter
 import koshian.*
+import vue.*
 
 class MainActivity : Activity() {
+   private class ColumnComponent(context: Context) : VComponent<Nothing>() {
+      override val store: Nothing get() = throw UnsupportedOperationException()
+
+      override val componentView = koshian(context) {
+         TextView {
+            view.backgroundColor = 0xfafafa.opaque
+            view.text = "Hello"
+            view.elevation = 32.dp.toFloat()
+         }
+      }
+   }
+
+   private val columnLayoutAdapter = object : ColumnLayoutAdapter() {
+      private val components by lazy {
+         List(3) { ColumnComponent(this@MainActivity) }
+      }
+
+      override fun getItemCount() = components.size
+      override fun getVComponentAt(position: Int) = components[position]
+   }
+
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
       buildLayout()
@@ -29,7 +53,9 @@ class MainActivity : Activity() {
 
    private fun buildLayout() {
       val contextView = koshian(this) {
-         ColumnLayout {}
+         ColumnLayout {
+            view.adapter = columnLayoutAdapter
+         }
       }
 
       setContentView(contextView)
