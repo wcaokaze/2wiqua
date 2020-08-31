@@ -55,6 +55,7 @@ class MainActivity : Activity() {
       val contextView = koshian(this) {
          ColumnLayout {
             view.adapter = columnLayoutAdapter
+            view.columnMargin = 16.dp
          }
       }
 

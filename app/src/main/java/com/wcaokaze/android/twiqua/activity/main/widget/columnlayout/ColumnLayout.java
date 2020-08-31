@@ -57,6 +57,7 @@ public final class ColumnLayout extends FrameLayout {
    private float mInitialMotionY;
 
    private int mColumnWidth = 0;
+   private int mColumnMargin = 0;
 
    private int mPosition = 0;
    private long mVisiblePositionRange = 0L;
@@ -78,6 +79,15 @@ public final class ColumnLayout extends FrameLayout {
 
    public final void setAdapter(final ColumnLayoutAdapter adapter) {
       mAdapter = adapter;
+      relayout();
+   }
+
+   public final int getColumnMargin() {
+      return mColumnMargin;
+   }
+
+   public final void setColumnMargin(final int columnMargin) {
+      mColumnMargin = columnMargin;
       relayout();
    }
 
@@ -234,19 +244,19 @@ public final class ColumnLayout extends FrameLayout {
    private void performDrag(final float x, final float dx) {
       float scrollOffset = mScrollOffset - dx;
 
-      final float columnWidth = (float) mColumnWidth;
+      final float columnDistance = (float) (mColumnWidth + mColumnMargin * 2);
 
-      if (scrollOffset < -columnWidth) {
+      if (scrollOffset < -columnDistance) {
          final ColumnLayoutAdapter adapter = mAdapter;
 
          if (adapter != null && mPosition < adapter.getItemCount()) {
             mPosition++;
-            scrollOffset += columnWidth;
+            scrollOffset += columnDistance;
          }
       } else if (scrollOffset > 0.0f) {
          if (mPosition > 0) {
             mPosition--;
-            scrollOffset -= columnWidth;
+            scrollOffset -= columnDistance;
          }
       }
 
@@ -323,7 +333,7 @@ public final class ColumnLayout extends FrameLayout {
       if (adapter == null) { return; }
 
       final int position = mPosition;
-      final int columnWidth = mColumnWidth;
+      final int columnDistance = mColumnWidth + mColumnMargin * 2;
       final float scrollOffset = mScrollOffset;
 
       final long positionRange = getVisiblePositionRange();
@@ -343,7 +353,7 @@ public final class ColumnLayout extends FrameLayout {
          final VComponentInterface<?> component = adapter.getVComponentAt(p);
          final View view = component.getComponentView();
 
-         view.setTranslationX((float) ((p - position) * columnWidth) + scrollOffset);
+         view.setTranslationX((float) ((p - position) * columnDistance) + scrollOffset);
       }
    }
 
@@ -384,14 +394,19 @@ public final class ColumnLayout extends FrameLayout {
 
          final ViewGroup.LayoutParams p = view.getLayoutParams();
 
+         final LayoutParams lParams;
+
          if (p instanceof LayoutParams) {
-            final LayoutParams lParams = (LayoutParams) p;
+            lParams = (LayoutParams) p;
             lParams.width = columnWidth;
             lParams.height = LayoutParams.MATCH_PARENT;
          } else {
-            final LayoutParams lParams = new LayoutParams(columnWidth, LayoutParams.MATCH_PARENT);
+            lParams = new LayoutParams(columnWidth, LayoutParams.MATCH_PARENT);
             view.setLayoutParams(lParams);
          }
+
+         lParams.setMarginStart(mColumnMargin);
+         lParams.setMarginEnd(mColumnMargin);
 
          addView(view);
       }
@@ -414,7 +429,7 @@ public final class ColumnLayout extends FrameLayout {
    private void relayout() {
       removeAllViews();
 
-      mColumnWidth = getWidth();
+      mColumnWidth = getWidth() - mColumnMargin * 2;
 
       final ColumnLayoutAdapter adapter = mAdapter;
       if (adapter == null) { return; }
