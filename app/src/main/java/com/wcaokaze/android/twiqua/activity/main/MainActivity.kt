@@ -56,6 +56,7 @@ class MainActivity : Activity() {
          ColumnLayout {
             view.adapter = columnLayoutAdapter
             view.columnMargin = 16.dp
+            view.visibleColumnCount = 2
          }
       }
 

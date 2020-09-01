@@ -56,6 +56,7 @@ public final class ColumnLayout extends FrameLayout {
    private float mInitialMotionX;
    private float mInitialMotionY;
 
+   private int mVisibleColumnCount = 1;
    private int mColumnWidth = 0;
    private int mColumnMargin = 0;
 
@@ -88,6 +89,15 @@ public final class ColumnLayout extends FrameLayout {
 
    public final void setColumnMargin(final int columnMargin) {
       mColumnMargin = columnMargin;
+      relayout();
+   }
+
+   public final int getVisibleColumnCount() {
+      return mVisibleColumnCount;
+   }
+
+   public final void setVisibleColumnCount(final int visibleColumnCount) {
+      mVisibleColumnCount = visibleColumnCount;
       relayout();
    }
 
@@ -244,19 +254,29 @@ public final class ColumnLayout extends FrameLayout {
    private void performDrag(final float x, final float dx) {
       float scrollOffset = mScrollOffset - dx;
 
-      final float columnDistance = (float) (mColumnWidth + mColumnMargin * 2);
+      final float columnMargin = (float) mColumnMargin;
+      final float columnWidth = (float) mColumnWidth;
+      final float columnDistance = columnWidth + columnMargin * 2.0f;
 
-      if (scrollOffset < -columnDistance) {
+      if (scrollOffset < -(columnWidth + columnMargin)) {
          final ColumnLayoutAdapter adapter = mAdapter;
 
          if (adapter != null && mPosition < adapter.getItemCount()) {
             mPosition++;
             scrollOffset += columnDistance;
+
+            if (BuildConfig.DEBUG) {
+               Log.i(TAG, "position: " + mPosition);
+            }
          }
-      } else if (scrollOffset > 0.0f) {
+      } else if (scrollOffset > columnMargin) {
          if (mPosition > 0) {
             mPosition--;
             scrollOffset -= columnDistance;
+
+            if (BuildConfig.DEBUG) {
+               Log.i(TAG, "position: " + mPosition);
+            }
          }
       }
 
@@ -394,19 +414,14 @@ public final class ColumnLayout extends FrameLayout {
 
          final ViewGroup.LayoutParams p = view.getLayoutParams();
 
-         final LayoutParams lParams;
-
          if (p instanceof LayoutParams) {
-            lParams = (LayoutParams) p;
+            final LayoutParams lParams = (LayoutParams) p;
             lParams.width = columnWidth;
             lParams.height = LayoutParams.MATCH_PARENT;
          } else {
-            lParams = new LayoutParams(columnWidth, LayoutParams.MATCH_PARENT);
+            final LayoutParams lParams = new LayoutParams(columnWidth, LayoutParams.MATCH_PARENT);
             view.setLayoutParams(lParams);
          }
-
-         lParams.setMarginStart(mColumnMargin);
-         lParams.setMarginEnd(mColumnMargin);
 
          addView(view);
       }
@@ -429,7 +444,8 @@ public final class ColumnLayout extends FrameLayout {
    private void relayout() {
       removeAllViews();
 
-      mColumnWidth = getWidth() - mColumnMargin * 2;
+      final int layoutWidth = getWidth() - mColumnMargin * 2;
+      mColumnWidth = layoutWidth / mVisibleColumnCount - mColumnMargin * 2;
 
       final ColumnLayoutAdapter adapter = mAdapter;
       if (adapter == null) { return; }
@@ -459,20 +475,25 @@ public final class ColumnLayout extends FrameLayout {
       final int itemCount = mAdapter.getItemCount();
       if (itemCount <= 0) { return -1L; }
 
+      final int columnMargin = mColumnMargin;
+      final int columnDistance = mColumnWidth + columnMargin * 2;
       final float scrollOffset = mScrollOffset;
 
       final int leftmostPosition;
       final int rightmostPosition;
 
-      if (scrollOffset == 0.0f) {
-         leftmostPosition  = mPosition;
-         rightmostPosition = mPosition;
-      } else if (scrollOffset < 0.0f) {
-         leftmostPosition  = mPosition;
-         rightmostPosition = mPosition + 1;
+      if (scrollOffset <= (float) columnMargin) {
+         leftmostPosition = mPosition;
       } else {
-         leftmostPosition  = mPosition - 1;
-         rightmostPosition = mPosition;
+         leftmostPosition = mPosition - 1;
+      }
+
+      if (scrollOffset + (float) (-columnMargin + columnDistance * mVisibleColumnCount)
+            >= (float) getWidth())
+      {
+         rightmostPosition = mPosition + mVisibleColumnCount - 1;
+      } else {
+         rightmostPosition = mPosition + mVisibleColumnCount;
       }
 
       final int higher = MathUtils.clamp(leftmostPosition,  0, itemCount - 1);
