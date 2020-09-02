@@ -23,7 +23,7 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
-public abstract class ColumnLayoutGestureDetectorBase
+public abstract class HorizontalColumnLayoutGestureDetector
       extends ColumnLayoutGestureDetector<HorizontalColumnLayoutManager>
 {
    private static final int INVALID_POINTER = -1;
@@ -41,7 +41,7 @@ public abstract class ColumnLayoutGestureDetectorBase
    private float mInitialMotionX;
    private float mInitialMotionY;
 
-   protected ColumnLayoutGestureDetectorBase
+   protected HorizontalColumnLayoutGestureDetector
          (final HorizontalColumnLayoutManager layoutManager, final Context context)
    {
       super(layoutManager);

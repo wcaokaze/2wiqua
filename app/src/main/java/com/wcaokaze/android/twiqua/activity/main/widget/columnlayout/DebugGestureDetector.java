@@ -18,7 +18,7 @@ package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout;
 
 import android.content.Context;
 
-public final class DebugGestureDetector extends ColumnLayoutGestureDetectorBase {
+public final class DebugGestureDetector extends HorizontalColumnLayoutGestureDetector {
    public DebugGestureDetector(final HorizontalColumnLayoutManager layoutManager,
                                final Context context)
    {
