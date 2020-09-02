@@ -27,8 +27,8 @@ import com.wcaokaze.android.twiqua.BuildConfig;
 
 import vue.VComponentInterface;
 
-public final class ColumnLayoutManagerImpl extends ColumnLayoutManager {
-   private static final String TAG = "2wiqua::ColumnLayoutMan";
+public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
+   private static final String TAG = "2wiqua::HorizontalColum";
 
    private int mColumnWidth = 0;
 

@@ -21,7 +21,7 @@ import android.content.Context
 import android.os.Bundle
 import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.ColumnLayout
 import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.ColumnLayoutAdapter
-import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.ColumnLayoutManagerImpl
+import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.HorizontalColumnLayoutManager
 import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.DebugGestureDetector
 import koshian.*
 import vue.*
@@ -48,7 +48,8 @@ class MainActivity : Activity() {
       override fun getVComponentAt(position: Int) = components[position]
    }
 
-   private val columnLayoutManager = ColumnLayoutManagerImpl()
+   private val columnLayoutManager =
+      HorizontalColumnLayoutManager()
 
    private val columnLayoutGestureDetector by lazy {
       DebugGestureDetector(columnLayoutManager, this)
