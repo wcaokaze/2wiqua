@@ -25,6 +25,7 @@ import androidx.annotation.Nullable;
 public final class ColumnLayout extends FrameLayout {
    private int mVisibleColumnCount = 1;
    private int mColumnMargin = 0;
+   private int mPadding = 0;
 
    @Nullable private ColumnLayoutAdapter mAdapter = null;
    @Nullable private ColumnLayoutManager mLayoutManager = null;
@@ -71,6 +72,15 @@ public final class ColumnLayout extends FrameLayout {
 
    public final void setLayoutManager(@Nullable final ColumnLayoutManager layoutManager) {
       mLayoutManager = layoutManager;
+      relayout();
+   }
+
+   public final int getPadding() {
+      return mPadding;
+   }
+
+   public final void setPadding(final int padding) {
+      mPadding = padding;
       relayout();
    }
 

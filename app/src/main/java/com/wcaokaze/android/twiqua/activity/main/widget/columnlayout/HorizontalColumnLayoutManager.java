@@ -41,7 +41,7 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
       view.removeAllViews();
 
       final int columnMargin = view.getColumnMargin();
-      final int layoutWidth = view.getWidth() - columnMargin * 2;
+      final int layoutWidth = view.getWidth() - view.getPadding() * 2;
       mColumnWidth = layoutWidth / view.getVisibleColumnCount() - columnMargin * 2;
 
       final ColumnLayoutAdapter adapter = view.getAdapter();

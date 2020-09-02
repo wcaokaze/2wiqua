@@ -66,7 +66,8 @@ class MainActivity : Activity() {
             view.adapter = columnLayoutAdapter
             view.layoutManager = columnLayoutManager
             view.gestureDetector = columnLayoutGestureDetector
-            view.columnMargin = 16.dp
+            view.padding = 8.dp
+            view.columnMargin = 8.dp
             view.visibleColumnCount = 2
          }
       }
