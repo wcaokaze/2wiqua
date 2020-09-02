@@ -18,8 +18,6 @@ package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout;
 
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import androidx.core.math.MathUtils;
 
@@ -30,19 +28,15 @@ import vue.VComponentInterface;
 public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
    private static final String TAG = "2wiqua::HorizontalColum";
 
-   private int mColumnWidth = 0;
-
    private int mPosition = 0;
    private long mVisiblePositionRange = 0L;
    private float mScrollOffset = 0.0f;
 
    @Override
    protected final void relayout(final ColumnLayout view) {
-      view.removeAllViews();
+      super.relayout(view);
 
-      final int columnMargin = view.getColumnMargin();
-      final int layoutWidth = view.getWidth() - view.getPadding() * 2;
-      mColumnWidth = layoutWidth / view.getVisibleColumnCount() - columnMargin * 2;
+      view.removeAllViews();
 
       final ColumnLayoutAdapter adapter = view.getAdapter();
       if (adapter == null) { return; }
@@ -64,7 +58,7 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
       float scrollOffset = mScrollOffset - dx;
 
       final float columnMargin = (float) view.getColumnMargin();
-      final float columnWidth = (float) mColumnWidth;
+      final float columnWidth = (float) getColumnWidth();
       final float columnDistance = columnWidth + columnMargin * 2.0f;
 
       if (scrollOffset < -(columnWidth + columnMargin)) {
@@ -98,7 +92,7 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
       if (adapter == null) { return; }
 
       final int position = mPosition;
-      final int columnDistance = mColumnWidth + view.getColumnMargin() * 2;
+      final int columnDistance = getColumnWidth() + view.getColumnMargin() * 2;
       final float scrollOffset = mScrollOffset;
 
       final long positionRange = getVisiblePositionRange(view);
@@ -122,78 +116,6 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
       }
    }
 
-   private void addNewVisibleView(final ColumnLayout columnLayout,
-                                  final ColumnLayoutAdapter adapter,
-                                  final long oldVisiblePositionRange,
-                                  final long newVisiblePositionRange)
-   {
-      final int oldLeftmostPosition  = (int) (oldVisiblePositionRange >> 32);
-      final int oldRightmostPosition = (int)  oldVisiblePositionRange;
-      final int newLeftmostPosition  = (int) (newVisiblePositionRange >> 32);
-      final int newRightmostPosition = (int)  newVisiblePositionRange;
-
-      if (newLeftmostPosition > oldLeftmostPosition) {
-         removeColumnViewInRange(columnLayout, adapter,
-               oldLeftmostPosition, newLeftmostPosition - 1);
-      } else if (newLeftmostPosition < oldLeftmostPosition) {
-         addColumnViewInRange(columnLayout, adapter,
-               newLeftmostPosition, oldLeftmostPosition - 1);
-      }
-
-      if (newRightmostPosition > oldRightmostPosition) {
-         addColumnViewInRange(columnLayout, adapter,
-               oldRightmostPosition + 1, newRightmostPosition);
-      } else if (newRightmostPosition < oldRightmostPosition) {
-         removeColumnViewInRange(columnLayout, adapter,
-               newRightmostPosition + 1, oldRightmostPosition);
-      }
-   }
-
-   private void addColumnViewInRange(final ColumnLayout columnLayout,
-                                     final ColumnLayoutAdapter adapter,
-                                     final int startPosition, final int lastPosition)
-   {
-      final int columnWidth = mColumnWidth;
-
-      for (int position = startPosition; position <= lastPosition; position++) {
-         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "adding the Column View at " + position);
-         }
-
-         final VComponentInterface<?> component = adapter.getVComponentAt(position);
-         final View columnView = component.getComponentView();
-
-         final ViewGroup.LayoutParams p = columnView.getLayoutParams();
-
-         if (p instanceof FrameLayout.LayoutParams) {
-            final FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) p;
-            lParams.width = columnWidth;
-            lParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
-         } else {
-            final FrameLayout.LayoutParams lParams = new FrameLayout.LayoutParams(
-                  columnWidth, FrameLayout.LayoutParams.MATCH_PARENT);
-            columnView.setLayoutParams(lParams);
-         }
-
-         columnLayout.addView(columnView);
-      }
-   }
-
-   private void removeColumnViewInRange(final ColumnLayout columnLayout,
-                                        final ColumnLayoutAdapter adapter,
-                                        final int startPosition, final int lastPosition)
-   {
-      for (int position = startPosition; position <= lastPosition; position++) {
-         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "removing the Column View at " + position);
-         }
-
-         final VComponentInterface<?> component = adapter.getVComponentAt(position);
-         final View columnView = component.getComponentView();
-         columnLayout.removeView(columnView);
-      }
-   }
-
    /**
     * @return ColumnLayout内で左端に表示されているカラムのpositionを上位32ビット、
     *         右端に表示されているカラムのpositionを下位32ビットとして
@@ -211,7 +133,7 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
       final int visibleColumnCount = view.getVisibleColumnCount();
 
       final int columnMargin = view.getColumnMargin();
-      final int columnDistance = mColumnWidth + columnMargin * 2;
+      final int columnDistance = getColumnWidth() + columnMargin * 2;
       final float scrollOffset = mScrollOffset;
 
       final int leftmostPosition;
