@@ -33,11 +33,13 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
    private final int mTopMargin;
    private final float mElevation;
+   private final float mPositionGap;
 
    public VerticalColumnLayoutManager(final Context context) {
       final float density = context.getResources().getDisplayMetrics().density;
       mTopMargin = (int) (8.0f * density);
       mElevation = 4.0f * density;
+      mPositionGap = 6.0f * density;
    }
 
    @Override
@@ -105,10 +107,17 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          final VComponentInterface<?> component = adapter.getVComponentAt(p);
          final View columnView = component.getComponentView();
 
-         columnView.setTranslationY((float) (
-               Math.pow((double) p / 5.0 + position / viewHeight, 1.3)
-                     * viewHeight
-         ));
+         final double scaledPosition = (double) p / 5.0 + position / viewHeight;
+         final double weightedPosition =
+               (scaledPosition <= 0.0)
+                     ? 0.0
+                     : Math.pow(scaledPosition, 1.3) * viewHeight;
+
+         if (p <= 2) {
+            columnView.setTranslationY((float) weightedPosition + (float) p * mPositionGap);
+         } else {
+            columnView.setTranslationY((float) weightedPosition + 3.0f * mPositionGap);
+         }
 
          columnView.setTranslationZ((float) p * mElevation);
       }
