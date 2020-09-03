@@ -36,7 +36,7 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
    protected final void relayout(final ColumnLayout view) {
       super.relayout(view);
 
-      view.removeAllViews();
+      view.internalLayout.removeAllViews();
 
       final ColumnLayoutAdapter adapter = view.getAdapter();
       if (adapter == null) { return; }

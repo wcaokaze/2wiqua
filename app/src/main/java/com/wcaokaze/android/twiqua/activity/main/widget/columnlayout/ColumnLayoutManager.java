@@ -96,7 +96,7 @@ public abstract class ColumnLayoutManager {
             columnView.setLayoutParams(lParams);
          }
 
-         columnLayout.addView(columnView);
+         columnLayout.internalLayout.addView(columnView);
       }
    }
 
@@ -111,7 +111,7 @@ public abstract class ColumnLayoutManager {
 
          final VComponentInterface<?> component = adapter.getVComponentAt(position);
          final View columnView = component.getComponentView();
-         columnLayout.removeView(columnView);
+         columnLayout.internalLayout.removeView(columnView);
       }
    }
 }

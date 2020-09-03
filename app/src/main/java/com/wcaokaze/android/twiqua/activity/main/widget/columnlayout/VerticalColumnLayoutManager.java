@@ -16,8 +16,10 @@
 
 package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import com.wcaokaze.android.twiqua.BuildConfig;
 
@@ -29,11 +31,29 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private float mPosition = 0.0f;
    private long mVisiblePositionRange = 0L;
 
+   private final int mTopMargin;
+   private final float mElevation;
+
+   public VerticalColumnLayoutManager(final Context context) {
+      final float density = context.getResources().getDisplayMetrics().density;
+      mTopMargin = (int) (8.0f * density);
+      mElevation = 4.0f * density;
+   }
+
    @Override
    protected final void relayout(final ColumnLayout view) {
       super.relayout(view);
 
-      view.removeAllViews();
+      final int margin = (view.getWidth() - getColumnWidth()) / 2;
+      final FrameLayout.LayoutParams internalLayoutParams =
+            (FrameLayout.LayoutParams) view.internalLayout.getLayoutParams();
+      internalLayoutParams.setMarginStart(margin);
+      internalLayoutParams.topMargin = mTopMargin;
+      internalLayoutParams.setMarginEnd(margin);
+      view.internalLayout.setLayoutParams(internalLayoutParams);
+      view.internalLayout.setElevation(mElevation * 2.0f);
+
+      view.internalLayout.removeAllViews();
 
       final ColumnLayoutAdapter adapter = view.getAdapter();
       if (adapter == null) { return; }
@@ -89,6 +109,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
                Math.pow((double) p / 5.0 + position / viewHeight, 1.3)
                      * viewHeight
          ));
+
+         columnView.setTranslationZ((float) p * mElevation);
       }
    }
 }

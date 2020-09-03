@@ -48,8 +48,9 @@ class MainActivity : Activity() {
       override fun getVComponentAt(position: Int) = components[position]
    }
 
-   private val columnLayoutManager =
-      VerticalColumnLayoutManager()
+   private val columnLayoutManager by lazy {
+      VerticalColumnLayoutManager(this)
+   }
 
    private val columnLayoutGestureDetector by lazy {
       VerticalColumnLayoutGestureDetector(columnLayoutManager, this)
