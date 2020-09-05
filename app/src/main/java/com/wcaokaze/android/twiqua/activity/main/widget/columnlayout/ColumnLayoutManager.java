@@ -53,6 +53,14 @@ public abstract class ColumnLayoutManager {
       final int newLeftmostPosition  = (int) (newVisiblePositionRange >> 32);
       final int newRightmostPosition = (int)  newVisiblePositionRange;
 
+      if (newLeftmostPosition  > oldRightmostPosition ||
+          newRightmostPosition < oldLeftmostPosition)
+      {
+         columnLayout.internalLayout.removeAllViews();
+         addColumnViewInRange(columnLayout, adapter, newLeftmostPosition, newRightmostPosition);
+         return;
+      }
+
       if (newLeftmostPosition > oldLeftmostPosition) {
          removeColumnViewInRange(columnLayout, adapter,
                oldLeftmostPosition, newLeftmostPosition - 1);
