@@ -63,10 +63,10 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       if (adapter == null) { return; }
 
       final long positionRange = getVisiblePositionRange(view);
-      final int leftmostPosition  = (int) (positionRange >> 32);
-      final int rightmostPosition = (int)  positionRange;
+      final int topmostPosition  = (int) (positionRange >> 32);
+      final int bottommostPosition = (int)  positionRange;
 
-      addColumnViewInRange(view, adapter, leftmostPosition, rightmostPosition);
+      addColumnViewInRange(view, adapter, topmostPosition, bottommostPosition);
 
       mVisiblePositionRange = positionRange;
 
@@ -87,12 +87,12 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final double position = (double) mPosition;
 
       final long positionRange = getVisiblePositionRange(view);
-      final int leftmostPosition  = (int) (positionRange >> 32);
-      final int rightmostPosition = (int)  positionRange;
+      final int topmostPosition  = (int) (positionRange >> 32);
+      final int bottommostPosition = (int)  positionRange;
 
       if (positionRange != mVisiblePositionRange) {
          if (BuildConfig.DEBUG) {
-            Log.i(TAG, "visiblePositionRange: " + leftmostPosition + " - " + rightmostPosition);
+            Log.i(TAG, "visiblePositionRange: " + topmostPosition + " - " + bottommostPosition);
          }
 
          addNewVisibleView(view, adapter, mVisiblePositionRange, positionRange);
@@ -101,7 +101,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
       final double viewHeight = (double) view.getHeight();
 
-      for (int p = leftmostPosition; p <= rightmostPosition; p++) {
+      for (int p = topmostPosition; p <= bottommostPosition; p++) {
          final VComponentInterface<?> component = adapter.getVComponentAt(p);
          final View columnView = component.getComponentView();
 
