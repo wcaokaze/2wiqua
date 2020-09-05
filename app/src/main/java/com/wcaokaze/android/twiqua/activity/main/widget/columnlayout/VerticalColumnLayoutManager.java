@@ -66,7 +66,12 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final int topmostPosition  = (int) (positionRange >> 32);
       final int bottommostPosition = (int)  positionRange;
 
-      addColumnViewInRange(view, adapter, topmostPosition, bottommostPosition);
+      if (topmostPosition <= 2) {
+         addColumnViewInRange(view, adapter, 0, bottommostPosition);
+      } else {
+         addColumnViewInRange(view, adapter, 0, 2);
+         addColumnViewInRange(view, adapter, topmostPosition, bottommostPosition);
+      }
 
       mVisiblePositionRange = positionRange;
 
@@ -118,6 +123,46 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          }
 
          columnView.setTranslationZ((float) p * mElevation);
+      }
+   }
+
+   private void addNewVisibleView(final ColumnLayout columnLayout,
+                                  final ColumnLayoutAdapter adapter,
+                                  final long oldVisiblePositionRange,
+                                  final long newVisiblePositionRange)
+   {
+      final int oldTopmostPosition    = (int) (oldVisiblePositionRange >> 32);
+      final int oldBottommostPosition = (int)  oldVisiblePositionRange;
+      final int newTopmostPosition    = (int) (newVisiblePositionRange >> 32);
+      final int newBottommostPosition = (int)  newVisiblePositionRange;
+
+      if (newTopmostPosition    > oldBottommostPosition ||
+          newBottommostPosition < oldTopmostPosition)
+      {
+         columnLayout.internalLayout.removeAllViews();
+         if (newTopmostPosition <= 2) {
+            addColumnViewInRange(columnLayout, adapter, 0, newBottommostPosition);
+         } else {
+            addColumnViewInRange(columnLayout, adapter, 0, 2);
+            addColumnViewInRange(columnLayout, adapter, newTopmostPosition, newBottommostPosition);
+         }
+         return;
+      }
+
+      if (newTopmostPosition > oldTopmostPosition) {
+         removeColumnViewInRange(columnLayout, adapter,
+               Math.max(3, oldTopmostPosition), newTopmostPosition - 1);
+      } else if (newTopmostPosition < oldTopmostPosition) {
+         addColumnViewInRange(columnLayout, adapter,
+               Math.max(3, newTopmostPosition), oldTopmostPosition - 1);
+      }
+
+      if (newBottommostPosition > oldBottommostPosition) {
+         addColumnViewInRange(columnLayout, adapter,
+               Math.max(3, oldBottommostPosition + 1), newBottommostPosition);
+      } else if (newBottommostPosition < oldBottommostPosition) {
+         removeColumnViewInRange(columnLayout, adapter,
+               Math.max(3, newBottommostPosition + 1), oldBottommostPosition);
       }
    }
 

@@ -43,41 +43,6 @@ public abstract class ColumnLayoutManager {
       return mColumnWidth;
    }
 
-   protected final void addNewVisibleView(final ColumnLayout columnLayout,
-                                          final ColumnLayoutAdapter adapter,
-                                          final long oldVisiblePositionRange,
-                                          final long newVisiblePositionRange)
-   {
-      final int oldLeftmostPosition  = (int) (oldVisiblePositionRange >> 32);
-      final int oldRightmostPosition = (int)  oldVisiblePositionRange;
-      final int newLeftmostPosition  = (int) (newVisiblePositionRange >> 32);
-      final int newRightmostPosition = (int)  newVisiblePositionRange;
-
-      if (newLeftmostPosition  > oldRightmostPosition ||
-          newRightmostPosition < oldLeftmostPosition)
-      {
-         columnLayout.internalLayout.removeAllViews();
-         addColumnViewInRange(columnLayout, adapter, newLeftmostPosition, newRightmostPosition);
-         return;
-      }
-
-      if (newLeftmostPosition > oldLeftmostPosition) {
-         removeColumnViewInRange(columnLayout, adapter,
-               oldLeftmostPosition, newLeftmostPosition - 1);
-      } else if (newLeftmostPosition < oldLeftmostPosition) {
-         addColumnViewInRange(columnLayout, adapter,
-               newLeftmostPosition, oldLeftmostPosition - 1);
-      }
-
-      if (newRightmostPosition > oldRightmostPosition) {
-         addColumnViewInRange(columnLayout, adapter,
-               oldRightmostPosition + 1, newRightmostPosition);
-      } else if (newRightmostPosition < oldRightmostPosition) {
-         removeColumnViewInRange(columnLayout, adapter,
-               newRightmostPosition + 1, oldRightmostPosition);
-      }
-   }
-
    protected final void addColumnViewInRange(final ColumnLayout columnLayout,
                                              final ColumnLayoutAdapter adapter,
                                              final int startPosition, final int lastPosition)
