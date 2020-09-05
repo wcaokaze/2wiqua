@@ -21,12 +21,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import androidx.core.math.MathUtils;
+
 import com.wcaokaze.android.twiqua.BuildConfig;
 
 import vue.VComponentInterface;
 
 public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
-   private static final String TAG = "2wiqua::VerticalColumnMa";
+   private static final String TAG = "2wiqua::VerticalColumnM";
 
    private float mPosition = 0.0f;
    private long mVisiblePositionRange = 0L;
@@ -60,15 +62,13 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final ColumnLayoutAdapter adapter = view.getAdapter();
       if (adapter == null) { return; }
 
-      /*
       final long positionRange = getVisiblePositionRange(view);
       final int leftmostPosition  = (int) (positionRange >> 32);
       final int rightmostPosition = (int)  positionRange;
-      */
 
-      addColumnViewInRange(view, adapter, 0, adapter.getItemCount() - 1);
+      addColumnViewInRange(view, adapter, leftmostPosition, rightmostPosition);
 
-      // mVisiblePositionRange = positionRange;
+      mVisiblePositionRange = positionRange;
 
       applyTranslationY(view);
    }
@@ -86,7 +86,6 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
       final double position = (double) mPosition;
 
-      /*
       final long positionRange = getVisiblePositionRange(view);
       final int leftmostPosition  = (int) (positionRange >> 32);
       final int rightmostPosition = (int)  positionRange;
@@ -99,11 +98,10 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          addNewVisibleView(view, adapter, mVisiblePositionRange, positionRange);
          mVisiblePositionRange = positionRange;
       }
-      */
 
       final double viewHeight = (double) view.getHeight();
 
-      for (int p = 0; p < adapter.getItemCount(); p++) {
+      for (int p = leftmostPosition; p <= rightmostPosition; p++) {
          final VComponentInterface<?> component = adapter.getVComponentAt(p);
          final View columnView = component.getComponentView();
 
@@ -121,5 +119,31 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
          columnView.setTranslationZ((float) p * mElevation);
       }
+   }
+
+   /**
+    * @return ColumnLayout内で一番上に表示されているカラムのpositionを上位32ビット、
+    *         一番下に表示されているカラムのpositionを下位32ビットとして
+    *         組み合わせた64ビットの数値。
+    *         Adapterがセットされていない、もしくはセットされているが
+    *         {@link ColumnLayoutAdapter#getItemCount()}が0を返す場合は-1。
+    */
+   private long getVisiblePositionRange(final ColumnLayout view) {
+      final ColumnLayoutAdapter adapter = view.getAdapter();
+      if (adapter == null) { return -1L; }
+
+      final int itemCount = adapter.getItemCount();
+      if (itemCount <= 0) { return -1L; }
+
+      final double position = (double) mPosition;
+      final double viewHeight = (double) view.getHeight();
+
+      final int topmostPosition = (int) (-5.0 * position / viewHeight);
+      final int bottommostPosition = itemCount - 1;
+
+      final int higher = MathUtils.clamp(topmostPosition,    0, itemCount - 1);
+      final int lower  = MathUtils.clamp(bottommostPosition, 0, itemCount - 1);
+
+      return (long) higher << 32 | (long) lower;
    }
 }
