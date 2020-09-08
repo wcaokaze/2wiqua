@@ -112,13 +112,21 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
                      ? 0.0
                      : Math.pow(scaledPosition, 1.3) * viewHeight;
 
-         if (p <= 2) {
+         if (p == 1) {
             columnView.setTranslationY((float) weightedPosition + (float) p * mPositionGap);
+            columnView.setTranslationZ(mElevation);
+         } else if (p == 2) {
+            columnView.setTranslationY((float) weightedPosition + (float) p * mPositionGap);
+            columnView.setTranslationZ(2.0f * mElevation);
+            view.internalLayout.setTranslationZ(
+                  columnView.getElevation() + 3.0f * mElevation);
+         } else if (p == 3) {
+            view.internalLayout.setTranslationY((float) weightedPosition + 3.0f * mPositionGap);
+            columnView.setTranslationZ(3.0f * mElevation);
          } else {
-            columnView.setTranslationY((float) weightedPosition + 3.0f * mPositionGap);
+            columnView.setTranslationY((float) weightedPosition);
+            columnView.setTranslationZ((float) p * mElevation);
          }
-
-         columnView.setTranslationZ((float) p * mElevation);
       }
    }
 
