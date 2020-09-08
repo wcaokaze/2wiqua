@@ -18,6 +18,8 @@ package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout;
 
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.core.math.MathUtils;
 
@@ -36,7 +38,7 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
    protected final void relayout(final ColumnLayout view) {
       super.relayout(view);
 
-      removeAllColumnViews(view);
+      view.removeAllViews();
 
       final ColumnLayoutAdapter adapter = view.getAdapter();
       if (adapter == null) { return; }
@@ -45,7 +47,7 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
       final int leftmostPosition  = (int) (positionRange >> 32);
       final int rightmostPosition = (int)  positionRange;
 
-      addColumnViewIntoInternalLayout(view, adapter, leftmostPosition, rightmostPosition);
+      addColumnView(view, adapter, leftmostPosition, rightmostPosition);
 
       mVisiblePositionRange = positionRange;
 
@@ -129,25 +131,73 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
       if (newLeftmostPosition  > oldRightmostPosition ||
           newRightmostPosition < oldLeftmostPosition)
       {
-         removeAllColumnViews(columnLayout);
-         addColumnViewIntoInternalLayout(columnLayout, adapter, newLeftmostPosition, newRightmostPosition);
+         columnLayout.removeAllViews();
+         addColumnView(columnLayout, adapter, newLeftmostPosition, newRightmostPosition);
          return;
       }
 
       if (newLeftmostPosition > oldLeftmostPosition) {
-         removeColumnViewFromInternalLayout(columnLayout, adapter,
+         removeColumnView(columnLayout, adapter,
                oldLeftmostPosition, newLeftmostPosition - 1);
       } else if (newLeftmostPosition < oldLeftmostPosition) {
-         addColumnViewIntoInternalLayout(columnLayout, adapter,
+         addColumnView(columnLayout, adapter,
                newLeftmostPosition, oldLeftmostPosition - 1);
       }
 
       if (newRightmostPosition > oldRightmostPosition) {
-         addColumnViewIntoInternalLayout(columnLayout, adapter,
+         addColumnView(columnLayout, adapter,
                oldRightmostPosition + 1, newRightmostPosition);
       } else if (newRightmostPosition < oldRightmostPosition) {
-         removeColumnViewFromInternalLayout(columnLayout, adapter,
+         removeColumnView(columnLayout, adapter,
                newRightmostPosition + 1, oldRightmostPosition);
+      }
+   }
+
+   private void addColumnView(
+         final ColumnLayout columnLayout, final ColumnLayoutAdapter adapter,
+         final int startPosition, final int lastPosition
+   ) {
+      final int columnWidth = getColumnWidth();
+
+      for (int position = startPosition; position <= lastPosition; position++) {
+         if (BuildConfig.DEBUG) {
+            Log.i(TAG, "adding the Column View at " + position);
+         }
+
+         final VComponentInterface<?> component = adapter.getVComponentAt(position);
+         final View columnView = component.getComponentView();
+
+         initializeLayoutParams(columnView, columnWidth);
+         columnLayout.addView(columnView);
+      }
+   }
+
+   private void removeColumnView(
+         final ColumnLayout columnLayout, final ColumnLayoutAdapter adapter,
+         final int startPosition, final int lastPosition
+   ) {
+      for (int position = startPosition; position <= lastPosition; position++) {
+         if (BuildConfig.DEBUG) {
+            Log.i(TAG, "removing the Column View at " + position);
+         }
+
+         final VComponentInterface<?> component = adapter.getVComponentAt(position);
+         final View columnView = component.getComponentView();
+         columnLayout.removeView(columnView);
+      }
+   }
+
+   private void initializeLayoutParams(final View columnView, final int columnWidth) {
+      final ViewGroup.LayoutParams p = columnView.getLayoutParams();
+
+      if (p instanceof FrameLayout.LayoutParams) {
+         final FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) p;
+         lParams.width = columnWidth;
+         lParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+      } else {
+         final FrameLayout.LayoutParams lParams = new FrameLayout.LayoutParams(
+               columnWidth, FrameLayout.LayoutParams.MATCH_PARENT);
+         columnView.setLayoutParams(lParams);
       }
    }
 

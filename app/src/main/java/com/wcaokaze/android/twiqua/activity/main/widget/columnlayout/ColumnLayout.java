@@ -27,22 +27,12 @@ public final class ColumnLayout extends FrameLayout {
    private int mColumnMargin = 0;
    private int mPadding = 0;
 
-   /* package */ final FrameLayout internalLayout;
-
    @Nullable private ColumnLayoutAdapter mAdapter = null;
    @Nullable private ColumnLayoutManager mLayoutManager = null;
    @Nullable private ColumnLayoutGestureDetector<?> mGestureDetector = null;
 
    public ColumnLayout(final Context context) {
       super(context);
-
-      internalLayout = new FrameLayout(context);
-      internalLayout.setBackgroundColor(0xffffffff);
-
-      addView(internalLayout,
-            new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,
-                                         LayoutParams.MATCH_PARENT)
-      );
    }
 
    @Nullable
@@ -81,7 +71,16 @@ public final class ColumnLayout extends FrameLayout {
    }
 
    public final void setLayoutManager(@Nullable final ColumnLayoutManager layoutManager) {
+      if (mLayoutManager != null) {
+         mLayoutManager.onDetachedFromColumnLayout(this);
+      }
+
       mLayoutManager = layoutManager;
+
+      if (layoutManager != null) {
+         layoutManager.onAttachedToColumnLayout(this);
+      }
+
       relayout();
    }
 

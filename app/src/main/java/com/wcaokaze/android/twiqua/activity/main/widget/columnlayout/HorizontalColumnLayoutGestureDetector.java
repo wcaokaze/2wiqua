@@ -83,12 +83,7 @@ public abstract class HorizontalColumnLayoutGestureDetector
             final float y = ev.getY(pointerIndex);
             final float yDiff = Math.abs(y - mInitialMotionY);
 
-            if (dx != 0.0f
-                  && canScroll(
-                        view.internalLayout, false,
-                        (int) dx, (int) x, (int) y
-                  ))
-            {
+            if (dx != 0.0f && canScroll(view, false, (int) dx, (int) x, (int) y)) {
                mLastMotionX = x;
                mLastMotionY = y;
                mIsUnableToDrag = true;
