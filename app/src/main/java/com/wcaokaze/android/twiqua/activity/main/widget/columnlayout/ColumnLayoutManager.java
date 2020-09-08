@@ -43,12 +43,10 @@ public abstract class ColumnLayoutManager {
       return mColumnWidth;
    }
 
-   protected final void addColumnViewInRange(final ColumnLayout columnLayout,
-                                             final ColumnLayoutAdapter adapter,
-                                             final int startPosition, final int lastPosition)
-   {
-      final int columnWidth = mColumnWidth;
-
+   protected final void addColumnView(
+         final ColumnLayout columnLayout, final ColumnLayoutAdapter adapter,
+         final int startPosition, final int lastPosition
+   ) {
       for (int position = startPosition; position <= lastPosition; position++) {
          if (BuildConfig.DEBUG) {
             Log.i(TAG, "adding the Column View at " + position);
@@ -57,29 +55,76 @@ public abstract class ColumnLayoutManager {
          final VComponentInterface<?> component = adapter.getVComponentAt(position);
          final View columnView = component.getComponentView();
 
-         final ViewGroup.LayoutParams p = columnView.getLayoutParams();
+         initializeLayoutParams(columnView);
+         columnLayout.addView(columnView);
+      }
+   }
 
-         if (p instanceof FrameLayout.LayoutParams) {
-            final FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) p;
-            lParams.width = columnWidth;
-            lParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
-         } else {
-            final FrameLayout.LayoutParams lParams = new FrameLayout.LayoutParams(
-                  columnWidth, FrameLayout.LayoutParams.MATCH_PARENT);
-            columnView.setLayoutParams(lParams);
+   protected final void addColumnViewIntoInternalLayout(
+         final ColumnLayout columnLayout, final ColumnLayoutAdapter adapter,
+         final int startPosition, final int lastPosition
+   ) {
+      for (int position = startPosition; position <= lastPosition; position++) {
+         if (BuildConfig.DEBUG) {
+            Log.i(TAG, "adding the Column View at " + position + " into internalLayout");
          }
 
+         final VComponentInterface<?> component = adapter.getVComponentAt(position);
+         final View columnView = component.getComponentView();
+
+         initializeLayoutParams(columnView);
          columnLayout.internalLayout.addView(columnView);
       }
    }
 
-   protected final void removeColumnViewInRange(final ColumnLayout columnLayout,
-                                                final ColumnLayoutAdapter adapter,
-                                                final int startPosition, final int lastPosition)
-   {
+   private void initializeLayoutParams(final View columnView) {
+      final ViewGroup.LayoutParams p = columnView.getLayoutParams();
+
+      if (p instanceof FrameLayout.LayoutParams) {
+         final FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) p;
+         lParams.width = mColumnWidth;
+         lParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+      } else {
+         final FrameLayout.LayoutParams lParams = new FrameLayout.LayoutParams(
+               mColumnWidth, FrameLayout.LayoutParams.MATCH_PARENT);
+         columnView.setLayoutParams(lParams);
+      }
+   }
+
+   protected final void removeAllColumnViews(final ColumnLayout columnLayout) {
+      final FrameLayout internalLayout = columnLayout.internalLayout;
+
+      for (int i = columnLayout.getChildCount(); i >= 0; i--) {
+         final View child = columnLayout.getChildAt(i);
+         if (child == internalLayout) { continue; }
+         columnLayout.removeView(child);
+      }
+
+      internalLayout.removeAllViews();
+   }
+
+   protected final void removeColumnView(
+         final ColumnLayout columnLayout, final ColumnLayoutAdapter adapter,
+         final int startPosition, final int lastPosition
+   ) {
       for (int position = startPosition; position <= lastPosition; position++) {
          if (BuildConfig.DEBUG) {
             Log.i(TAG, "removing the Column View at " + position);
+         }
+
+         final VComponentInterface<?> component = adapter.getVComponentAt(position);
+         final View columnView = component.getComponentView();
+         columnLayout.removeView(columnView);
+      }
+   }
+
+   protected final void removeColumnViewFromInternalLayout(
+         final ColumnLayout columnLayout, final ColumnLayoutAdapter adapter,
+         final int startPosition, final int lastPosition
+   ) {
+      for (int position = startPosition; position <= lastPosition; position++) {
+         if (BuildConfig.DEBUG) {
+            Log.i(TAG, "removing the Column View at " + position + " from internalLayout");
          }
 
          final VComponentInterface<?> component = adapter.getVComponentAt(position);
