@@ -31,7 +31,29 @@ import vue.VComponentInterface;
 public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private static final String TAG = "2wiqua::VerticalColumnM";
 
-   private final FrameLayout internalLayout;
+   /**
+    * 0〜2までは直接wrapperLayout、3以降internalLayoutに入れる。
+    * こうしないと影が濃くなりすぎる
+    * <pre>
+    * columnLayout {
+    *    wrapperLayout {
+    *       layout.gravity = CENTER_HORIZONTAL
+    *
+    *       columnView0 {}
+    *       columnView1 {}
+    *       columnView2 {}
+    *
+    *       internalLayout {
+    *          columnView3 {}
+    *          columnView4 {}
+    *          ...
+    *       }
+    *    }
+    * }
+    * </pre>
+    */
+   private final FrameLayout mWrapperLayout;
+   private final FrameLayout mInternalLayout;
 
    private float mPosition = 0.0f;
    private long mVisiblePositionRange = 0L;
@@ -46,27 +68,42 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       mElevation = 4.0f * density;
       mPositionGap = 6.0f * density;
 
-      internalLayout = new FrameLayout(context);
-      internalLayout.setBackgroundColor(0xffffffff);
+      mWrapperLayout = new FrameLayout(context);
+      mWrapperLayout.setBackgroundColor(0xffffffff);
+
+      mInternalLayout = new FrameLayout(context);
+      mInternalLayout.setBackgroundColor(0xffffffff);
    }
 
    @Override
    protected final void relayout(final ColumnLayout columnLayout) {
       super.relayout(columnLayout);
 
-      internalLayout.removeAllViews();
-      columnLayout.removeAllViews();
+      mInternalLayout.removeAllViews();
+      mWrapperLayout .removeAllViews();
+      columnLayout   .removeAllViews();
 
-      final FrameLayout.LayoutParams internalLayoutParams =
-            new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
-                                         FrameLayout.LayoutParams.MATCH_PARENT);
+      {
+         final FrameLayout.LayoutParams wrapperLayoutParams =
+               new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
+                                            FrameLayout.LayoutParams.MATCH_PARENT);
 
-      final int margin = (columnLayout.getWidth() - getColumnWidth()) / 2;
-      internalLayoutParams.setMarginStart(margin);
-      internalLayoutParams.topMargin = mTopMargin;
-      internalLayoutParams.setMarginEnd(margin);
+         final int margin = (columnLayout.getWidth() - getColumnWidth()) / 2;
+         wrapperLayoutParams.setMarginStart(margin);
+         wrapperLayoutParams.topMargin = mTopMargin;
+         wrapperLayoutParams.setMarginEnd(margin);
+         mWrapperLayout.setElevation(mElevation);
 
-      columnLayout.addView(internalLayout, internalLayoutParams);
+         columnLayout.addView(mWrapperLayout, wrapperLayoutParams);
+      }
+
+      {
+         final FrameLayout.LayoutParams internalLayoutParams =
+               new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
+                                            FrameLayout.LayoutParams.MATCH_PARENT);
+
+         mWrapperLayout.addView(mInternalLayout, internalLayoutParams);
+      }
 
       final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
       if (adapter == null) { return; }
@@ -75,7 +112,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final int topmostPosition  = (int) (positionRange >> 32);
       final int bottommostPosition = (int)  positionRange;
 
-      addColumnView(columnLayout, adapter, 0, Math.min(2, bottommostPosition));
+      addColumnView(adapter, 0, Math.min(2, bottommostPosition));
       addColumnViewIntoInternalLayout(adapter, Math.max(3, topmostPosition), bottommostPosition);
 
       mVisiblePositionRange = positionRange;
@@ -86,7 +123,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    @Override
    protected void onDetachedFromColumnLayout(final ColumnLayout columnLayout) {
       super.onDetachedFromColumnLayout(columnLayout);
-      columnLayout.removeView(internalLayout);
+      columnLayout.removeView(mWrapperLayout);
    }
 
    /* package */ final void performDrag(final ColumnLayout view,
@@ -111,7 +148,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
             Log.i(TAG, "visiblePositionRange: " + topmostPosition + " - " + bottommostPosition);
          }
 
-         addNewVisibleView(view, adapter, mVisiblePositionRange, positionRange);
+         addNewVisibleView(adapter, mVisiblePositionRange, positionRange);
          mVisiblePositionRange = positionRange;
       }
 
@@ -133,10 +170,10 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          } else if (p == 2) {
             columnView.setTranslationY((float) weightedPosition + (float) p * mPositionGap);
             columnView.setTranslationZ(2.0f * mElevation);
-            internalLayout.setTranslationZ(
+            mInternalLayout.setTranslationZ(
                   columnView.getElevation() + 3.0f * mElevation);
          } else if (p == 3) {
-            internalLayout.setTranslationY((float) weightedPosition + 3.0f * mPositionGap);
+            mInternalLayout.setTranslationY((float) weightedPosition + 3.0f * mPositionGap);
             columnView.setTranslationZ(3.0f * mElevation);
          } else {
             columnView.setTranslationY((float) weightedPosition);
@@ -145,8 +182,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       }
    }
 
-   private void addNewVisibleView(final ColumnLayout columnLayout,
-                                  final ColumnLayoutAdapter adapter,
+   private void addNewVisibleView(final ColumnLayoutAdapter adapter,
                                   final long oldVisiblePositionRange,
                                   final long newVisiblePositionRange)
    {
@@ -158,9 +194,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       if (newTopmostPosition    > oldBottommostPosition ||
           newBottommostPosition < oldTopmostPosition)
       {
-         removeAllColumnViews(columnLayout);
-         addColumnView(columnLayout, adapter,
-               0, Math.min(2, newBottommostPosition));
+         removeAllColumnViews();
+         addColumnView(adapter, 0, Math.min(2, newBottommostPosition));
          addColumnViewIntoInternalLayout(adapter,
                Math.min(3, newTopmostPosition), newBottommostPosition);
          return;
@@ -183,12 +218,9 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       }
    }
 
-   private void addColumnView(
-         final ColumnLayout columnLayout, final ColumnLayoutAdapter adapter,
-         final int startPosition, final int lastPosition
-   ) {
-      final int columnWidth = getColumnWidth();
-
+   private void addColumnView(final ColumnLayoutAdapter adapter,
+                              final int startPosition, final int lastPosition)
+   {
       for (int position = startPosition; position <= lastPosition; position++) {
          if (BuildConfig.DEBUG) {
             Log.i(TAG, "adding the Column View at " + position);
@@ -197,8 +229,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          final VComponentInterface<?> component = adapter.getVComponentAt(position);
          final View columnView = component.getComponentView();
 
-         initializeLayoutParams(columnView, columnWidth);
-         columnLayout.addView(columnView);
+         initializeLayoutParams(columnView);
+         mWrapperLayout.addView(columnView);
       }
    }
 
@@ -206,8 +238,6 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          final ColumnLayoutAdapter adapter,
          final int startPosition, final int lastPosition
    ) {
-      final int columnWidth = getColumnWidth();
-
       for (int position = startPosition; position <= lastPosition; position++) {
          if (BuildConfig.DEBUG) {
             Log.i(TAG, "adding the Column View at " + position + " into internalLayout");
@@ -216,8 +246,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          final VComponentInterface<?> component = adapter.getVComponentAt(position);
          final View columnView = component.getComponentView();
 
-         initializeLayoutParams(columnView, columnWidth);
-         internalLayout.addView(columnView);
+         initializeLayoutParams(columnView);
+         mInternalLayout.addView(columnView);
       }
    }
 
@@ -232,30 +262,33 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
          final VComponentInterface<?> component = adapter.getVComponentAt(position);
          final View columnView = component.getComponentView();
-         internalLayout.removeView(columnView);
+         mInternalLayout.removeView(columnView);
       }
    }
 
-   protected final void removeAllColumnViews(final ColumnLayout columnLayout) {
-      for (int i = columnLayout.getChildCount(); i >= 0; i--) {
-         final View child = columnLayout.getChildAt(i);
+   protected final void removeAllColumnViews() {
+      final FrameLayout wrapperLayout = mWrapperLayout;
+      final FrameLayout internalLayout = mInternalLayout;
+
+      for (int i = wrapperLayout.getChildCount(); i >= 0; i--) {
+         final View child = wrapperLayout.getChildAt(i);
          if (child == internalLayout) { continue; }
-         columnLayout.removeView(child);
+         wrapperLayout.removeView(child);
       }
 
       internalLayout.removeAllViews();
    }
 
-   private void initializeLayoutParams(final View columnView, final int columnWidth) {
+   private void initializeLayoutParams(final View columnView) {
       final ViewGroup.LayoutParams p = columnView.getLayoutParams();
 
       if (p instanceof FrameLayout.LayoutParams) {
          final FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) p;
-         lParams.width = columnWidth;
+         lParams.width  = FrameLayout.LayoutParams.MATCH_PARENT;
          lParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
       } else {
          final FrameLayout.LayoutParams lParams = new FrameLayout.LayoutParams(
-               columnWidth, FrameLayout.LayoutParams.MATCH_PARENT);
+               FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
          columnView.setLayoutParams(lParams);
       }
    }
