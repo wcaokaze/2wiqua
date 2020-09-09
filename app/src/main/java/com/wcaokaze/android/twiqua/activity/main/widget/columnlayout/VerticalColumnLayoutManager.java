@@ -55,7 +55,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private final FrameLayout mWrapperLayout;
    private final FrameLayout mInternalLayout;
 
-   private float mPosition = 0.0f;
+   private float mScrollPosition = 0.0f;
    private long mVisiblePositionRange = 0L;
 
    private final int mTopMargin;
@@ -129,7 +129,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    /* package */ final void performDrag(final ColumnLayout view,
                                         final float y, final float dy)
    {
-      mPosition -= dy;
+      mScrollPosition -= dy;
       applyTranslationY(view);
    }
 
@@ -137,7 +137,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final ColumnLayoutAdapter adapter = view.getAdapter();
       if (adapter == null) { return; }
 
-      final double position = (double) mPosition;
+      final float scrollPosition = mScrollPosition;
 
       final long positionRange = getVisiblePositionRange(view);
       final int topmostPosition  = (int) (positionRange >> 32);
@@ -152,34 +152,52 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          mVisiblePositionRange = positionRange;
       }
 
-      final double viewHeight = (double) view.getHeight();
+      final float viewHeight = (float) view.getHeight();
+      final float elevation = mElevation;
+      final float positionGap = mPositionGap;
 
-      for (int p = topmostPosition; p <= bottommostPosition; p++) {
-         final VComponentInterface<?> component = adapter.getVComponentAt(p);
-         final View columnView = component.getComponentView();
+      if (bottommostPosition < 0) { return; }
+      final float translationY0 = getTranslationY(scrollPosition, 0, viewHeight);
+      mWrapperLayout.setTranslationY(translationY0);
 
-         final double scaledPosition = (double) p / 5.0 + position / viewHeight;
-         final double weightedPosition =
-               (scaledPosition <= 0.0)
-                     ? 0.0
-                     : Math.pow(scaledPosition, 1.3) * viewHeight;
+      if (bottommostPosition < 1) { return; }
+      final View columnView1 = adapter.getVComponentAt(1).getComponentView();
+      final float translationY1 = getTranslationY(scrollPosition, 1, viewHeight);
+      columnView1.setTranslationY(translationY1 - translationY0 + positionGap);
+      columnView1.setTranslationZ(elevation);
 
-         if (p == 1) {
-            columnView.setTranslationY((float) weightedPosition + (float) p * mPositionGap);
-            columnView.setTranslationZ(mElevation);
-         } else if (p == 2) {
-            columnView.setTranslationY((float) weightedPosition + (float) p * mPositionGap);
-            columnView.setTranslationZ(2.0f * mElevation);
-            mInternalLayout.setTranslationZ(
-                  columnView.getElevation() + 3.0f * mElevation);
-         } else if (p == 3) {
-            mInternalLayout.setTranslationY((float) weightedPosition + 3.0f * mPositionGap);
-            columnView.setTranslationZ(3.0f * mElevation);
-         } else {
-            columnView.setTranslationY((float) weightedPosition);
-            columnView.setTranslationZ((float) p * mElevation);
-         }
+      if (bottommostPosition < 2) { return; }
+      final View columnView2 = adapter.getVComponentAt(2).getComponentView();
+      final float translationY2 = getTranslationY(scrollPosition, 2, viewHeight);
+      columnView2.setTranslationY(translationY2 - translationY0 + 2.0f * positionGap);
+      columnView2.setTranslationZ(2.0f * elevation);
+
+      if (bottommostPosition < 3) { return; }
+      final float translationY3 = getTranslationY(scrollPosition, 3, viewHeight);
+      mInternalLayout.setTranslationY(translationY3 - translationY0 + 3.0f * positionGap);
+      mInternalLayout.setTranslationZ(columnView2.getElevation() + 3.0f * elevation);
+
+      if (topmostPosition <= 3) {
+         final View columnView3 = adapter.getVComponentAt(3).getComponentView();
+         columnView3.setTranslationY(0.0f);
       }
+
+      for (int position = Math.max(4, topmostPosition);
+           position <= bottommostPosition;
+           position++)
+      {
+         final View columnViewP = adapter.getVComponentAt(position).getComponentView();
+         final float translationYP = getTranslationY(scrollPosition, position, viewHeight);
+         columnViewP.setTranslationY(translationYP - translationY3);
+         columnViewP.setTranslationZ((float) position * elevation);
+      }
+   }
+
+   private static float getTranslationY
+         (final float scrollPosition, final int position, final float viewHeight)
+   {
+      final float scaledY = (float) position / 5.0f + scrollPosition / viewHeight;
+      return (scaledY <= 0.0f) ? 0.0f : (float) Math.pow((double) scaledY, 1.3) * viewHeight;
    }
 
    private void addNewVisibleView(final ColumnLayoutAdapter adapter,
@@ -307,7 +325,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final int itemCount = adapter.getItemCount();
       if (itemCount <= 0) { return -1L; }
 
-      final double position = (double) mPosition;
+      final double position = (double) mScrollPosition;
       final double viewHeight = (double) view.getHeight();
 
       final int topmostPosition = (int) (-5.0 * position / viewHeight);
