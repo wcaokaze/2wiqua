@@ -52,7 +52,63 @@ public final class VerticalColumnLayoutGestureDetector
    protected final boolean onInterceptTouchEvent(final ColumnLayout view,
                                                  final MotionEvent ev)
    {
-      return true;
+      /*
+       * このメソッドはモーション処理にinterceptするかどうかを判断するだけです。
+       * trueを返した場合onMotionEventが呼び出されるので実際のスクロール処理は
+       * そこで行います。
+       */
+
+      final int action = ev.getAction() & MotionEvent.ACTION_MASK;
+
+      if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+         resetTouch();
+         return false;
+      }
+
+      if (action != MotionEvent.ACTION_DOWN) {
+         if (mIsBeingDragged) { return true; }
+      }
+
+      switch (action) {
+         case MotionEvent.ACTION_MOVE: {
+            final int activePointerId = mActivePointerId;
+            if (activePointerId == INVALID_POINTER) { break; }
+
+            final int pointerIndex = ev.findPointerIndex(activePointerId);
+            final float y = ev.getY(pointerIndex);
+            final float dy = y - mLastMotionY;
+            final float yDiff = Math.abs(dy);
+            final float x = ev.getX(pointerIndex);
+
+            if (yDiff > mTouchSlop) {
+               mIsBeingDragged = true;
+               requestParentDisallowInterceptTouchEvent(view, true);
+               mLastMotionY = dy > 0.0f
+                     ? mInitialMotionY + mTouchSlop
+                     : mInitialMotionY - mTouchSlop;
+               mLastMotionX = x;
+            }
+
+            break;
+         }
+
+         case MotionEvent.ACTION_DOWN: {
+            mLastMotionX = mInitialMotionX = ev.getX();
+            mLastMotionY = mInitialMotionY = ev.getY();
+            mActivePointerId = ev.getPointerId(0);
+            mIsUnableToDrag = false;
+            mIsScrollStarted = true;
+            mIsBeingDragged = false;
+            break;
+         }
+
+         case MotionEvent.ACTION_POINTER_UP: {
+            onSecondaryPointerUp(ev);
+            break;
+         }
+      }
+
+      return mIsBeingDragged;
    }
 
    @Override
@@ -82,11 +138,10 @@ public final class VerticalColumnLayoutGestureDetector
                }
 
                final float x = event.getX(pointerIndex);
-               final float dx = Math.abs(x - mLastMotionX);
                final float y = event.getY(pointerIndex);
                final float dy = Math.abs(y - mLastMotionY);
 
-               if (dy > mTouchSlop && dy > dx) {
+               if (dy > mTouchSlop) {
                   mIsBeingDragged = true;
                   requestParentDisallowInterceptTouchEvent(view, true);
                   mLastMotionX = x;
