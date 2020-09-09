@@ -329,7 +329,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final double viewHeight = (double) view.getHeight();
 
       final int topmostPosition = (int) (-5.0 * position / viewHeight);
-      final int bottommostPosition = itemCount - 1;
+      final int bottommostPosition = (int) (5.0 * (1.0 - position / viewHeight));
 
       final int higher = MathUtils.clamp(topmostPosition,    0, itemCount - 1);
       final int lower  = MathUtils.clamp(bottommostPosition, 0, itemCount - 1);
