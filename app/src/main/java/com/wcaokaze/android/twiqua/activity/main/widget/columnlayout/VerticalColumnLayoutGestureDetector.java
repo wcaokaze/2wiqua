@@ -17,6 +17,7 @@
 package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
@@ -38,6 +39,8 @@ public final class VerticalColumnLayoutGestureDetector
    private float mLastMotionY;
    private float mInitialMotionX;
    private float mInitialMotionY;
+
+   private LongClickDetector mLongClickDetector = new LongClickDetector();
 
    public VerticalColumnLayoutGestureDetector
          (final VerticalColumnLayoutManager layoutManager, final Context context)
@@ -81,6 +84,7 @@ public final class VerticalColumnLayoutGestureDetector
             final float x = ev.getX(pointerIndex);
 
             if (yDiff > mTouchSlop) {
+               mLongClickDetector.cancel();
                mIsBeingDragged = true;
                requestParentDisallowInterceptTouchEvent(view, true);
                mLastMotionY = dy > 0.0f
@@ -99,10 +103,17 @@ public final class VerticalColumnLayoutGestureDetector
             mIsUnableToDrag = false;
             mIsScrollStarted = true;
             mIsBeingDragged = false;
+
+            mLongClickDetector.cancel();
+            mLongClickDetector = new LongClickDetector();
+            view.postDelayed(mLongClickDetector,
+                  (long) ViewConfiguration.getLongPressTimeout());
+
             break;
          }
 
          case MotionEvent.ACTION_POINTER_UP: {
+            mLongClickDetector.cancel();
             onSecondaryPointerUp(ev);
             break;
          }
@@ -142,6 +153,7 @@ public final class VerticalColumnLayoutGestureDetector
                final float dy = Math.abs(y - mLastMotionY);
 
                if (dy > mTouchSlop) {
+                  mLongClickDetector.cancel();
                   mIsBeingDragged = true;
                   requestParentDisallowInterceptTouchEvent(view, true);
                   mLastMotionX = x;
@@ -163,12 +175,14 @@ public final class VerticalColumnLayoutGestureDetector
          }
 
          case MotionEvent.ACTION_UP: {
+            mLongClickDetector.cancel();
             if (mIsBeingDragged) {
             }
             break;
          }
 
          case MotionEvent.ACTION_CANCEL: {
+            mLongClickDetector.cancel();
             if (mIsBeingDragged) {
             }
             break;
@@ -182,6 +196,7 @@ public final class VerticalColumnLayoutGestureDetector
          }
 
          case MotionEvent.ACTION_POINTER_UP: {
+            mLongClickDetector.cancel();
             onSecondaryPointerUp(event);
             mLastMotionY = event.getY(event.findPointerIndex(mActivePointerId));
             break;
@@ -213,6 +228,21 @@ public final class VerticalColumnLayoutGestureDetector
       final ViewParent parent = columnLayout.getParent();
       if (parent != null) {
          parent.requestDisallowInterceptTouchEvent(disallowIntercept);
+      }
+   }
+
+   private static final class LongClickDetector implements Runnable {
+      private boolean mIsCancelled = false;
+
+      /* package */ final void cancel() {
+         mIsCancelled = true;
+      }
+
+      @Override
+      public final void run() {
+         if (mIsCancelled) { return; }
+
+         Log.i("2wiqua", "Long Clicked");
       }
    }
 }
