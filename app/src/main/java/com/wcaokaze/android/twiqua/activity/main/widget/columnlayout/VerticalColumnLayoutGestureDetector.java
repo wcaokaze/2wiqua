@@ -30,7 +30,6 @@ public final class VerticalColumnLayoutGestureDetector
    private int mActivePointerId = INVALID_POINTER;
 
    private boolean mIsBeingDragged;
-   private boolean mIsUnableToDrag;
    private boolean mIsScrollStarted;
 
    private final float mTouchSlop;
@@ -39,6 +38,8 @@ public final class VerticalColumnLayoutGestureDetector
    private float mLastMotionY;
    private float mInitialMotionX;
    private float mInitialMotionY;
+
+   private boolean mIsRearrangingMode = false;
 
    private LongClickDetector mLongClickDetector = new LongClickDetector();
 
@@ -100,7 +101,6 @@ public final class VerticalColumnLayoutGestureDetector
             mLastMotionX = mInitialMotionX = ev.getX();
             mLastMotionY = mInitialMotionY = ev.getY();
             mActivePointerId = ev.getPointerId(0);
-            mIsUnableToDrag = false;
             mIsScrollStarted = true;
             mIsBeingDragged = false;
 
@@ -168,7 +168,11 @@ public final class VerticalColumnLayoutGestureDetector
                final float y = event.getY(activePointerIndex);
                final float dy = mLastMotionY - y;
                mLastMotionY = y;
-               layoutManager.performDrag(view, y, dy);
+
+               if (mIsRearrangingMode) {
+               } else {
+                  layoutManager.performDrag(view, y, dy);
+               }
             }
 
             break;
@@ -209,7 +213,7 @@ public final class VerticalColumnLayoutGestureDetector
    private void resetTouch() {
       mActivePointerId = INVALID_POINTER;
       mIsBeingDragged = false;
-      mIsUnableToDrag = false;
+      mIsRearrangingMode = false;
    }
 
    private void onSecondaryPointerUp(final MotionEvent ev) {
@@ -233,14 +237,21 @@ public final class VerticalColumnLayoutGestureDetector
 
    private final class LongClickDetector implements Runnable {
       private boolean mIsCancelled = false;
+      private boolean mHasDetected = false;
 
       /* package */ final void cancel() {
+         if (mHasDetected) { return; }
+
          mIsCancelled = true;
+         mIsRearrangingMode = false;
       }
 
       @Override
       public final void run() {
          if (mIsCancelled) { return; }
+
+         mHasDetected = true;
+         mIsRearrangingMode = true;
 
          final ColumnLayout columnLayout = layoutManager.getColumnLayout();
          if (columnLayout == null) { return; }

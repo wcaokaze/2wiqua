@@ -69,6 +69,7 @@ public abstract class HorizontalColumnLayoutGestureDetector
 
       if (action != MotionEvent.ACTION_DOWN) {
          if (mIsBeingDragged) { return true; }
+         if (mIsUnableToDrag) { return false; }
       }
 
       switch (action) {
