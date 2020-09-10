@@ -231,7 +231,7 @@ public final class VerticalColumnLayoutGestureDetector
       }
    }
 
-   private static final class LongClickDetector implements Runnable {
+   private final class LongClickDetector implements Runnable {
       private boolean mIsCancelled = false;
 
       /* package */ final void cancel() {
@@ -242,7 +242,10 @@ public final class VerticalColumnLayoutGestureDetector
       public final void run() {
          if (mIsCancelled) { return; }
 
-         Log.i("2wiqua", "Long Clicked");
+         final ColumnLayout columnLayout = layoutManager.getColumnLayout();
+         if (columnLayout == null) { return; }
+
+         layoutManager.startRearrangingMode(columnLayout, mLastMotionY);
       }
    }
 }

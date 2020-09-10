@@ -133,6 +133,12 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       applyTranslationY(view);
    }
 
+   /* package */ final void startRearrangingMode(final ColumnLayout view,
+                                                 final float y)
+   {
+      Log.i(TAG, "long click: " + getPosition(view, y));
+   }
+
    private void applyTranslationY(final ColumnLayout view) {
       final ColumnLayoutAdapter adapter = view.getAdapter();
       if (adapter == null) { return; }
@@ -310,6 +316,24 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          columnView.setLayoutParams(lParams);
       }
    }
+
+   private int getPosition(final ColumnLayout view, final float touchY) {
+      final float scrollPosition = mScrollPosition;
+      final int viewHeight = view.getHeight();
+
+      /*
+       *                                   1
+       *                                 -----
+       *   ⎧ ⎛  touchY - 3 positionGap  ⎞ 1.3      scrollPosition  ⎫
+       * 5 ⎨ ⎜ ------------------------ ⎟      -  ---------------- ⎬
+       *   ⎩ ⎝       viewHeight         ⎠            viewHeight    ⎭
+       */
+      return (int) (5.0f * ((float) Math.pow(
+            (double) ((touchY - 3.0f * mPositionGap) / (float) viewHeight), 1.0 / 1.3)
+            - scrollPosition / (float) viewHeight));
+   }
+
+
 
    /**
     * @return ColumnLayout内で一番上に表示されているカラムのpositionを上位32ビット、

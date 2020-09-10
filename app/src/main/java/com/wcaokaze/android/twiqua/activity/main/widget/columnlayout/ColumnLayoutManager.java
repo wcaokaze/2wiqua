@@ -25,6 +25,11 @@ public abstract class ColumnLayoutManager {
    @Nullable
    private ColumnLayout mColumnLayout = null;
 
+   @Nullable
+   protected final ColumnLayout getColumnLayout() {
+      return mColumnLayout;
+   }
+
    @CallSuper
    protected void relayout(final ColumnLayout view) {
       final int columnMargin = view.getColumnMargin();
