@@ -58,6 +58,9 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private float mScrollPosition = 0.0f;
    private long mVisiblePositionRange = 0L;
 
+   private int mRearrangingColumnPosition = -1;
+   private float mRearrangingColumnTransitionY = Float.NaN;
+
    private final int mTopMargin;
    private final float mElevation;
    private final float mPositionGap;
@@ -136,7 +139,22 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    /* package */ final void startRearrangingMode(final ColumnLayout view,
                                                  final float y)
    {
-      Log.i(TAG, "long click: " + getPosition(view, y));
+      final ColumnLayoutAdapter adapter = view.getAdapter();
+      if (adapter == null) { return; }
+
+      mRearrangingColumnPosition = getPosition(view, y);
+
+      mRearrangingColumnTransitionY = adapter
+            .getVComponentAt(mRearrangingColumnPosition)
+            .getComponentView()
+            .getTranslationY();
+   }
+
+   /* package */ final void performRearrangingDrag(final ColumnLayout view,
+                                                   final float y, final float dy)
+   {
+      mRearrangingColumnTransitionY -= dy;
+      applyTranslationY(view);
    }
 
    private void applyTranslationY(final ColumnLayout view) {
@@ -144,6 +162,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       if (adapter == null) { return; }
 
       final float scrollPosition = mScrollPosition;
+      final int rearrangingColumnPosition = mRearrangingColumnPosition;
 
       final long positionRange = getVisiblePositionRange(view);
       final int topmostPosition  = (int) (positionRange >> 32);
@@ -194,7 +213,13 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       {
          final View columnViewP = adapter.getVComponentAt(position).getComponentView();
          final float translationYP = getTranslationY(scrollPosition, position, viewHeight);
-         columnViewP.setTranslationY(translationYP - translationY3);
+
+         if (position == rearrangingColumnPosition) {
+            columnViewP.setTranslationY(mRearrangingColumnTransitionY);
+         } else {
+            columnViewP.setTranslationY(translationYP - translationY3);
+         }
+
          columnViewP.setTranslationZ((float) position * elevation);
       }
    }
