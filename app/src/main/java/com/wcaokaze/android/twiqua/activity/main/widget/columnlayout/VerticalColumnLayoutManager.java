@@ -150,6 +150,12 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
             .getTranslationY();
    }
 
+   /* package */ final void finishRearrangingMode(final ColumnLayout view) {
+      mRearrangingColumnPosition = -1;
+      mRearrangingColumnTransitionY = Float.NaN;
+      applyTranslationY(view);
+   }
+
    /* package */ final void performRearrangingDrag(final ColumnLayout view,
                                                    final float y, final float dy)
    {

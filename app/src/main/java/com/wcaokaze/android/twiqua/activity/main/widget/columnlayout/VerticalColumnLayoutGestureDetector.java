@@ -105,6 +105,7 @@ public final class VerticalColumnLayoutGestureDetector
             mIsBeingDragged = false;
 
             mLongClickDetector.cancel();
+            finishRearrangingMode(view);
             mLongClickDetector = new LongClickDetector();
             view.postDelayed(mLongClickDetector,
                   (long) ViewConfiguration.getLongPressTimeout());
@@ -181,6 +182,7 @@ public final class VerticalColumnLayoutGestureDetector
 
          case MotionEvent.ACTION_UP: {
             mLongClickDetector.cancel();
+            finishRearrangingMode(view);
             if (mIsBeingDragged) {
             }
             break;
@@ -188,6 +190,7 @@ public final class VerticalColumnLayoutGestureDetector
 
          case MotionEvent.ACTION_CANCEL: {
             mLongClickDetector.cancel();
+            finishRearrangingMode(view);
             if (mIsBeingDragged) {
             }
             break;
@@ -214,6 +217,14 @@ public final class VerticalColumnLayoutGestureDetector
    private void resetTouch() {
       mActivePointerId = INVALID_POINTER;
       mIsBeingDragged = false;
+      mIsRearrangingMode = false;
+   }
+
+   private void finishRearrangingMode(final ColumnLayout columnLayout) {
+      if (mIsRearrangingMode) {
+         layoutManager.finishRearrangingMode(columnLayout);
+      }
+
       mIsRearrangingMode = false;
    }
 
@@ -244,7 +255,11 @@ public final class VerticalColumnLayoutGestureDetector
          if (mHasDetected) { return; }
 
          mIsCancelled = true;
-         mIsRearrangingMode = false;
+
+         final ColumnLayout columnLayout = layoutManager.getColumnLayout();
+         if (columnLayout != null) {
+            finishRearrangingMode(columnLayout);
+         }
       }
 
       @Override
