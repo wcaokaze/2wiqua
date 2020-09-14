@@ -25,6 +25,7 @@ import android.widget.FrameLayout;
 import androidx.core.math.MathUtils;
 
 import com.wcaokaze.android.twiqua.BuildConfig;
+import com.wcaokaze.android.twiqua.anim.FloatAnimator;
 
 import vue.VComponentInterface;
 
@@ -154,10 +155,35 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       applyTranslationY(view);
    }
 
-   /* package */ final void finishRearrangingMode(final ColumnLayout view) {
-      mRearrangingColumnPosition = -1;
-      mRearrangingColumnTop = Float.NaN;
-      applyTranslationY(view);
+   /* package */ final void finishRearrangingMode(final ColumnLayout view,
+                                                  final float y)
+   {
+      final float from = mRearrangingColumnTop;
+
+      final float to = getTop(
+            mScrollPosition,
+            mRearrangingColumnPosition,
+            (float) view.getHeight(),
+            mPositionGap
+      );
+
+      new FloatAnimator(from, to, /* duration = */ 150L) {
+         @Override
+         public void update(final long animationTime,
+                            final float animationTimeRate,
+                            final float value)
+         {
+            mRearrangingColumnTop = value;
+            applyTranslationY(view);
+         }
+
+         @Override
+         public void onFinish() {
+            mRearrangingColumnPosition = -1;
+            mRearrangingColumnTop = Float.NaN;
+            applyTranslationY(view);
+         }
+      };
    }
 
    /* package */ final void performRearrangingDrag(final ColumnLayout view,

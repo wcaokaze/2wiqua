@@ -102,10 +102,10 @@ public final class VerticalColumnLayoutGestureDetector
             mLastMotionY = mInitialMotionY = ev.getY();
             mActivePointerId = ev.getPointerId(0);
             mIsScrollStarted = true;
+            mIsRearrangingMode = false;
             mIsBeingDragged = false;
 
             mLongClickDetector.cancel();
-            finishRearrangingMode(view);
             mLongClickDetector = new LongClickDetector();
             view.postDelayed(mLongClickDetector,
                   (long) ViewConfiguration.getLongPressTimeout());
@@ -115,6 +115,7 @@ public final class VerticalColumnLayoutGestureDetector
 
          case MotionEvent.ACTION_POINTER_UP: {
             mLongClickDetector.cancel();
+            finishRearrangingMode(view, mLastMotionY);
             onSecondaryPointerUp(ev);
             break;
          }
@@ -182,7 +183,7 @@ public final class VerticalColumnLayoutGestureDetector
 
          case MotionEvent.ACTION_UP: {
             mLongClickDetector.cancel();
-            finishRearrangingMode(view);
+            finishRearrangingMode(view, mLastMotionY);
             if (mIsBeingDragged) {
             }
             break;
@@ -190,7 +191,7 @@ public final class VerticalColumnLayoutGestureDetector
 
          case MotionEvent.ACTION_CANCEL: {
             mLongClickDetector.cancel();
-            finishRearrangingMode(view);
+            finishRearrangingMode(view, mLastMotionY);
             if (mIsBeingDragged) {
             }
             break;
@@ -205,6 +206,7 @@ public final class VerticalColumnLayoutGestureDetector
 
          case MotionEvent.ACTION_POINTER_UP: {
             mLongClickDetector.cancel();
+            finishRearrangingMode(view, mLastMotionY);
             onSecondaryPointerUp(event);
             mLastMotionY = event.getY(event.findPointerIndex(mActivePointerId));
             break;
@@ -220,9 +222,9 @@ public final class VerticalColumnLayoutGestureDetector
       mIsRearrangingMode = false;
    }
 
-   private void finishRearrangingMode(final ColumnLayout columnLayout) {
+   private void finishRearrangingMode(final ColumnLayout columnLayout, final float y) {
       if (mIsRearrangingMode) {
-         layoutManager.finishRearrangingMode(columnLayout);
+         layoutManager.finishRearrangingMode(columnLayout, y);
       }
 
       mIsRearrangingMode = false;
@@ -255,11 +257,6 @@ public final class VerticalColumnLayoutGestureDetector
          if (mHasDetected) { return; }
 
          mIsCancelled = true;
-
-         final ColumnLayout columnLayout = layoutManager.getColumnLayout();
-         if (columnLayout != null) {
-            finishRearrangingMode(columnLayout);
-         }
       }
 
       @Override
