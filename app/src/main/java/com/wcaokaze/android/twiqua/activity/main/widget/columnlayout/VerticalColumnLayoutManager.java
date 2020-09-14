@@ -59,7 +59,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private long mVisiblePositionRange = 0L;
 
    private int mRearrangingColumnPosition = -1;
-   private float mRearrangingColumnTransitionY = Float.NaN;
+   private float mRearrangingColumnTop = Float.NaN;
 
    private final int mTopMargin;
    private final float mElevation;
@@ -144,22 +144,26 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
       mRearrangingColumnPosition = getPosition(view, y);
 
-      mRearrangingColumnTransitionY = adapter
-            .getVComponentAt(mRearrangingColumnPosition)
-            .getComponentView()
-            .getTranslationY();
+      mRearrangingColumnTop = getTop(
+            mScrollPosition,
+            mRearrangingColumnPosition,
+            (float) view.getHeight(),
+            mPositionGap
+      );
+
+      applyTranslationY(view);
    }
 
    /* package */ final void finishRearrangingMode(final ColumnLayout view) {
       mRearrangingColumnPosition = -1;
-      mRearrangingColumnTransitionY = Float.NaN;
+      mRearrangingColumnTop = Float.NaN;
       applyTranslationY(view);
    }
 
    /* package */ final void performRearrangingDrag(final ColumnLayout view,
                                                    final float y, final float dy)
    {
-      mRearrangingColumnTransitionY -= dy;
+      mRearrangingColumnTop -= dy;
       applyTranslationY(view);
    }
 
@@ -187,26 +191,64 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float elevation = mElevation;
       final float positionGap = mPositionGap;
 
+      // ----
+
       if (bottommostPosition < 0) { return; }
-      final float translationY0 = getTranslationY(scrollPosition, 0, viewHeight);
+
+      final float translationY0;
+      if (rearrangingColumnPosition == 0) {
+         translationY0 = mRearrangingColumnTop;
+      } else {
+         translationY0 = getTranslationY(scrollPosition, 0, viewHeight);
+      }
+
       mWrapperLayout.setTranslationY(translationY0);
 
+      // ----
+
       if (bottommostPosition < 1) { return; }
+
+      final float translationY1;
+      if (rearrangingColumnPosition == 1) {
+         translationY1 = mRearrangingColumnTop - positionGap;
+      } else {
+         translationY1 = getTranslationY(scrollPosition, 1, viewHeight);
+      }
+
       final View columnView1 = adapter.getVComponentAt(1).getComponentView();
-      final float translationY1 = getTranslationY(scrollPosition, 1, viewHeight);
       columnView1.setTranslationY(translationY1 - translationY0 + positionGap);
       columnView1.setTranslationZ(elevation);
 
+      // ----
+
       if (bottommostPosition < 2) { return; }
+
+      final float translationY2;
+      if (rearrangingColumnPosition == 2) {
+         translationY2 = mRearrangingColumnTop - 2.0f * positionGap;
+      } else {
+         translationY2 = getTranslationY(scrollPosition, 2, viewHeight);
+      }
+
       final View columnView2 = adapter.getVComponentAt(2).getComponentView();
-      final float translationY2 = getTranslationY(scrollPosition, 2, viewHeight);
       columnView2.setTranslationY(translationY2 - translationY0 + 2.0f * positionGap);
       columnView2.setTranslationZ(2.0f * elevation);
 
+      // ----
+
       if (bottommostPosition < 3) { return; }
-      final float translationY3 = getTranslationY(scrollPosition, 3, viewHeight);
+
+      final float translationY3;
+      if (rearrangingColumnPosition == 3) {
+         translationY3 = mRearrangingColumnTop - 3.0f * positionGap;
+      } else {
+         translationY3 = getTranslationY(scrollPosition, 3, viewHeight);
+      }
+
       mInternalLayout.setTranslationY(translationY3 - translationY0 + 3.0f * positionGap);
       mInternalLayout.setTranslationZ(columnView2.getElevation() + 3.0f * elevation);
+
+      // ----
 
       if (topmostPosition <= 3) {
          final View columnView3 = adapter.getVComponentAt(3).getComponentView();
@@ -221,7 +263,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
          final float translationYP = getTranslationY(scrollPosition, position, viewHeight);
 
          if (position == rearrangingColumnPosition) {
-            columnViewP.setTranslationY(mRearrangingColumnTransitionY);
+            columnViewP.setTranslationY(mRearrangingColumnTop - translationY3 - 3.0f * positionGap);
          } else {
             columnViewP.setTranslationY(translationYP - translationY3);
          }
@@ -235,6 +277,20 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    {
       final float scaledY = (float) position / 5.0f + scrollPosition / viewHeight;
       return (scaledY <= 0.0f) ? 0.0f : (float) Math.pow((double) scaledY, 1.3) * viewHeight;
+   }
+
+   private static float getTop(final float scrollPosition,
+                               final int position,
+                               final float viewHeight,
+                               final float positionGap)
+   {
+      final float translationY = getTranslationY(scrollPosition, position, viewHeight);
+
+      if (position <= 2) {
+         return translationY + (float) position * positionGap;
+      } else {
+         return translationY + 3.0f * positionGap;
+      }
    }
 
    private void addNewVisibleView(final ColumnLayoutAdapter adapter,
