@@ -133,7 +133,24 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    /* package */ final void performDrag(final ColumnLayout view,
                                         final float y, final float dy)
    {
-      mScrollPosition -= dy;
+      final ColumnLayoutAdapter adapter = view.getAdapter();
+      if (adapter == null) { return; }
+
+      final float t = mScrollPosition - dy;
+
+      final int lastIndex = adapter.getItemCount() - 1;
+      final float viewHeight = (float) view.getHeight();
+      final float min = (float) lastIndex * viewHeight / -5.0f;
+      final float max = viewHeight / 5.0f;
+
+      if (t < min) {
+         mScrollPosition = min;
+      } else if (t > max) {
+         mScrollPosition = max;
+      } else {
+         mScrollPosition = t;
+      }
+
       applyTranslationY(view);
    }
 
