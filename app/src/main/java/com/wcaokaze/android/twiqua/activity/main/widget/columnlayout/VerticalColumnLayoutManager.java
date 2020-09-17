@@ -160,13 +160,22 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final ColumnLayoutAdapter adapter = view.getAdapter();
       if (adapter == null) { return; }
 
-      mRearrangingColumnPosition = getPosition(view, y);
+      final float scrollPosition = mScrollPosition;
+      final float viewHeight = (float) view.getHeight();
+      final float positionGap = mPositionGap;
+
+      mRearrangingColumnPosition = getPosition(
+            scrollPosition,
+            viewHeight,
+            positionGap,
+            y
+      );
 
       mRearrangingColumnTop = getTop(
-            mScrollPosition,
+            scrollPosition,
             mRearrangingColumnPosition,
-            (float) view.getHeight(),
-            mPositionGap
+            viewHeight,
+            positionGap
       );
 
       applyTranslationY(view);
@@ -206,7 +215,23 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    /* package */ final void performRearrangingDrag(final ColumnLayout view,
                                                    final float y, final float dy)
    {
-      mRearrangingColumnTop -= dy;
+      final float rearrangingColumnTop = mRearrangingColumnTop - dy;
+      mRearrangingColumnTop = rearrangingColumnTop;
+
+      final float scrollPosition = mScrollPosition;
+      final int rearrangingColumnPosition = mRearrangingColumnPosition;
+      final float viewHeight = (float) view.getHeight();
+      final float positionGap = mPositionGap;
+
+      final float prevColumnTop = getTop(scrollPosition, rearrangingColumnPosition - 1, viewHeight, positionGap);
+      final float nextColumnTop = getTop(scrollPosition, rearrangingColumnPosition + 1, viewHeight, positionGap);
+
+      if (rearrangingColumnTop < prevColumnTop) {
+         Log.i(TAG, "rearranged to prev");
+      } else if (rearrangingColumnTop > nextColumnTop) {
+         Log.i(TAG, "rearranged to next");
+      }
+
       applyTranslationY(view);
    }
 
@@ -447,10 +472,11 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       }
    }
 
-   private int getPosition(final ColumnLayout view, final float touchY) {
-      final float scrollPosition = mScrollPosition;
-      final int viewHeight = view.getHeight();
-
+   private static int getPosition(final float scrollPosition,
+                                  final float viewHeight,
+                                  final float positionGap,
+                                  final float touchY)
+   {
       /*
        *                                   1
        *                                 -----
@@ -459,7 +485,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
        *   ⎩ ⎝       viewHeight         ⎠            viewHeight    ⎭
        */
       return (int) (5.0f * ((float) Math.pow(
-            (double) ((touchY - 3.0f * mPositionGap) / (float) viewHeight), 1.0 / 1.3)
+            (double) ((touchY - 3.0f * positionGap) / (float) viewHeight), 1.0 / 1.3)
             - scrollPosition / (float) viewHeight));
    }
 
