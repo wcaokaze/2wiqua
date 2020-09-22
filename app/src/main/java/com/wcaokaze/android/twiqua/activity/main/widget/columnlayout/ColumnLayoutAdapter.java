@@ -21,4 +21,11 @@ import vue.VComponentInterface;
 public abstract class ColumnLayoutAdapter {
    protected abstract int getItemCount();
    protected abstract VComponentInterface<?> getVComponentAt(final int position);
+
+   /**
+    * ユーザーの操作によってカラムが並び替えられたときに呼び出されます。
+    * Adapterの実装クラスではoldPositionにあったカラムを
+    * newPositionに移動する必要があります。
+    */
+   protected abstract void onRearranged(final int oldPosition, final int newPosition);
 }

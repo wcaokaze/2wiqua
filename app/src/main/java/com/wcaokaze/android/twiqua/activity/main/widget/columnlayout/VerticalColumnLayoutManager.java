@@ -227,9 +227,25 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float nextColumnTop = getTop(scrollPosition, rearrangingColumnPosition + 1, viewHeight, positionGap);
 
       if (rearrangingColumnTop < prevColumnTop) {
-         Log.i(TAG, "rearranged to prev");
+         final int oldPosition = mRearrangingColumnPosition;
+         final int newPosition = oldPosition - 1;
+
+         mRearrangingColumnPosition = newPosition;
+
+         final ColumnLayoutAdapter adapter = view.getAdapter();
+         if (adapter != null) {
+            adapter.onRearranged(oldPosition, newPosition);
+         }
       } else if (rearrangingColumnTop > nextColumnTop) {
-         Log.i(TAG, "rearranged to next");
+         final int oldPosition = mRearrangingColumnPosition;
+         final int newPosition = oldPosition + 1;
+
+         mRearrangingColumnPosition = newPosition;
+
+         final ColumnLayoutAdapter adapter = view.getAdapter();
+         if (adapter != null) {
+            adapter.onRearranged(oldPosition, newPosition);
+         }
       }
 
       applyTranslationY(view);
@@ -488,8 +504,6 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
             (double) ((touchY - 3.0f * positionGap) / (float) viewHeight), 1.0 / 1.3)
             - scrollPosition / (float) viewHeight));
    }
-
-
 
    /**
     * @return ColumnLayout内で一番上に表示されているカラムのpositionを上位32ビット、

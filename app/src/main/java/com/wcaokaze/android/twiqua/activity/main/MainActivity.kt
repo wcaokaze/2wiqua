@@ -25,15 +25,18 @@ import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.VerticalCol
 import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.VerticalColumnLayoutManager
 import koshian.*
 import vue.*
+import vue.koshian.*
 
 class MainActivity : Activity() {
    private class ColumnComponent(context: Context) : VComponent<Nothing>() {
       override val store: Nothing get() = throw UnsupportedOperationException()
 
+      val index = vBinder<Int>()
+
       override val componentView = koshian(context) {
          TextView {
             view.backgroundColor = 0xfafafa.opaque
-            view.text = "Hello"
+            vBind.text { "Hello${index()}" }
             view.elevation = 32.dp.toFloat()
          }
       }
@@ -41,11 +44,20 @@ class MainActivity : Activity() {
 
    private val columnLayoutAdapter = object : ColumnLayoutAdapter() {
       private val components by lazy {
-         List(10) { ColumnComponent(this@MainActivity) }
+         MutableList(10) { index ->
+            val component = ColumnComponent(this@MainActivity)
+            component.index.bind(index)
+            component
+         }
       }
 
       override fun getItemCount() = components.size
       override fun getVComponentAt(position: Int) = components[position]
+
+      override fun onRearranged(oldPosition: Int, newPosition: Int) {
+         val item = components.removeAt(oldPosition)
+         components.add(newPosition, item)
+      }
    }
 
    private val columnLayoutManager by lazy {
