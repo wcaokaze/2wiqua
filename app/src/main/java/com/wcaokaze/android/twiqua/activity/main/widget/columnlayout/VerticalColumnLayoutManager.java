@@ -25,6 +25,7 @@ import android.widget.FrameLayout;
 import androidx.core.math.MathUtils;
 
 import com.wcaokaze.android.twiqua.BuildConfig;
+import com.wcaokaze.android.twiqua.anim.AnimationFrameHandler;
 import com.wcaokaze.android.twiqua.anim.FloatAnimator;
 
 import vue.VComponentInterface;
@@ -66,6 +67,26 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private final float mElevation;
    private final float mPositionGap;
 
+   private boolean mIsAutomaticScrolling = false;
+
+   private final AnimationFrameHandler.Callback mAutomaticScroller = new AnimationFrameHandler.Callback() {
+      @Override
+      public final void onFrame(final long timeMillis) {
+         final ColumnLayout columnLayout = getColumnLayout();
+         if (columnLayout == null) { return; }
+
+         final float velocity = getAutoScrollVelocity(
+               (float) columnLayout.getHeight(),
+               mRearrangingColumnTop);
+
+         incrementScrollPosition(columnLayout, velocity);
+         rearrangeIfNecessary(columnLayout);
+         applyTranslationY(columnLayout);
+      }
+   };
+
+   // ==========================================================================
+
    public VerticalColumnLayoutManager(final Context context) {
       final float density = context.getResources().getDisplayMetrics().density;
       mTopMargin = (int) (8.0f * density);
@@ -78,6 +99,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       mInternalLayout = new FrameLayout(context);
       mInternalLayout.setBackgroundColor(0xffffffff);
    }
+
+   // ==========================================================================
 
    @Override
    protected final void relayout(final ColumnLayout columnLayout) {
@@ -130,16 +153,25 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       columnLayout.removeView(mWrapperLayout);
    }
 
+   // ==========================================================================
+
    /* package */ final void performDrag(final ColumnLayout view,
                                         final float y, final float dy)
    {
-      final ColumnLayoutAdapter adapter = view.getAdapter();
+      incrementScrollPosition(view, dy);
+      applyTranslationY(view);
+   }
+
+   private void incrementScrollPosition(final ColumnLayout columnLayout,
+                                        final float dy)
+   {
+      final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
       if (adapter == null) { return; }
 
       final float t = mScrollPosition - dy;
 
       final int lastIndex = adapter.getItemCount() - 1;
-      final float viewHeight = (float) view.getHeight();
+      final float viewHeight = (float) columnLayout.getHeight();
       final float min = (float) lastIndex * viewHeight / -5.0f;
       final float max = viewHeight / 5.0f;
 
@@ -150,9 +182,9 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       } else {
          mScrollPosition = t;
       }
-
-      applyTranslationY(view);
    }
+
+   // ==========================================================================
 
    /* package */ final void startRearrangingMode(final ColumnLayout view,
                                                  final float y)
@@ -218,9 +250,26 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float rearrangingColumnTop = mRearrangingColumnTop - dy;
       mRearrangingColumnTop = rearrangingColumnTop;
 
+      rearrangeIfNecessary(view);
+
+      if (mIsAutomaticScrolling) {
+         if (getAutoScrollVelocity((float) view.getHeight(), rearrangingColumnTop) == 0.0f) {
+            stopAutomaticScroll();
+         }
+      } else {
+         if (getAutoScrollVelocity((float) view.getHeight(), rearrangingColumnTop) != 0.0f) {
+            startAutomaticScroll();
+         }
+      }
+
+      applyTranslationY(view);
+   }
+
+   private void rearrangeIfNecessary(final ColumnLayout columnLayout) {
       final float scrollPosition = mScrollPosition;
       final int rearrangingColumnPosition = mRearrangingColumnPosition;
-      final float viewHeight = (float) view.getHeight();
+      final float rearrangingColumnTop = mRearrangingColumnTop;
+      final float viewHeight = (float) columnLayout.getHeight();
       final float positionGap = mPositionGap;
 
       final float prevColumnTop = getTop(scrollPosition, rearrangingColumnPosition - 1, viewHeight, positionGap);
@@ -232,7 +281,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
          mRearrangingColumnPosition = newPosition;
 
-         final ColumnLayoutAdapter adapter = view.getAdapter();
+         final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
          if (adapter != null) {
             adapter.onRearranged(oldPosition, newPosition);
          }
@@ -242,14 +291,42 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
          mRearrangingColumnPosition = newPosition;
 
-         final ColumnLayoutAdapter adapter = view.getAdapter();
+         final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
          if (adapter != null) {
             adapter.onRearranged(oldPosition, newPosition);
          }
       }
-
-      applyTranslationY(view);
    }
+
+   // ==========================================================================
+
+   private static float getAutoScrollVelocity(final float columnLayoutHeight,
+                                              final float rearrangingColumnTop)
+   {
+      final float automaticScrollHeight = columnLayoutHeight * 0.2f;
+
+      if (rearrangingColumnTop < automaticScrollHeight) {
+         return (rearrangingColumnTop - automaticScrollHeight) * 0.1f;
+      } else if (rearrangingColumnTop > columnLayoutHeight - automaticScrollHeight) {
+         return (rearrangingColumnTop - columnLayoutHeight + automaticScrollHeight) * 0.1f;
+      } else {
+         return 0.0f;
+      }
+   }
+
+   private void startAutomaticScroll() {
+      if (mIsAutomaticScrolling) { return; }
+      mIsAutomaticScrolling = true;
+      AnimationFrameHandler.INSTANCE.addCallback(mAutomaticScroller);
+   }
+
+   private void stopAutomaticScroll() {
+      if (!mIsAutomaticScrolling) { return; }
+      mIsAutomaticScrolling = false;
+      AnimationFrameHandler.INSTANCE.removeCallback(mAutomaticScroller);
+   }
+
+   // ==========================================================================
 
    private void applyTranslationY(final ColumnLayout view) {
       final ColumnLayoutAdapter adapter = view.getAdapter();
@@ -377,6 +454,51 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       }
    }
 
+   private static int getPosition(final float scrollPosition,
+                                  final float viewHeight,
+                                  final float positionGap,
+                                  final float touchY)
+   {
+      /*
+       *                                   1
+       *                                 -----
+       *   ⎧ ⎛  touchY - 3 positionGap  ⎞ 1.3      scrollPosition  ⎫
+       * 5 ⎨ ⎜ ------------------------ ⎟      -  ---------------- ⎬
+       *   ⎩ ⎝       viewHeight         ⎠            viewHeight    ⎭
+       */
+      return (int) (5.0f * ((float) Math.pow(
+            (double) ((touchY - 3.0f * positionGap) / (float) viewHeight), 1.0 / 1.3)
+            - scrollPosition / (float) viewHeight));
+   }
+
+   /**
+    * @return ColumnLayout内で一番上に表示されているカラムのpositionを上位32ビット、
+    *         一番下に表示されているカラムのpositionを下位32ビットとして
+    *         組み合わせた64ビットの数値。
+    *         Adapterがセットされていない、もしくはセットされているが
+    *         {@link ColumnLayoutAdapter#getItemCount()}が0を返す場合は-1。
+    */
+   private long getVisiblePositionRange(final ColumnLayout view) {
+      final ColumnLayoutAdapter adapter = view.getAdapter();
+      if (adapter == null) { return -1L; }
+
+      final int itemCount = adapter.getItemCount();
+      if (itemCount <= 0) { return -1L; }
+
+      final double position = (double) mScrollPosition;
+      final double viewHeight = (double) view.getHeight();
+
+      final int topmostPosition = (int) (-5.0 * position / viewHeight);
+      final int bottommostPosition = (int) (5.0 * (1.0 - position / viewHeight));
+
+      final int higher = MathUtils.clamp(topmostPosition,    0, itemCount - 1);
+      final int lower  = MathUtils.clamp(bottommostPosition, 0, itemCount - 1);
+
+      return (long) higher << 32 | (long) lower;
+   }
+
+   // ==========================================================================
+
    private void addNewVisibleView(final ColumnLayoutAdapter adapter,
                                   final long oldVisiblePositionRange,
                                   final long newVisiblePositionRange)
@@ -486,48 +608,5 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
          columnView.setLayoutParams(lParams);
       }
-   }
-
-   private static int getPosition(final float scrollPosition,
-                                  final float viewHeight,
-                                  final float positionGap,
-                                  final float touchY)
-   {
-      /*
-       *                                   1
-       *                                 -----
-       *   ⎧ ⎛  touchY - 3 positionGap  ⎞ 1.3      scrollPosition  ⎫
-       * 5 ⎨ ⎜ ------------------------ ⎟      -  ---------------- ⎬
-       *   ⎩ ⎝       viewHeight         ⎠            viewHeight    ⎭
-       */
-      return (int) (5.0f * ((float) Math.pow(
-            (double) ((touchY - 3.0f * positionGap) / (float) viewHeight), 1.0 / 1.3)
-            - scrollPosition / (float) viewHeight));
-   }
-
-   /**
-    * @return ColumnLayout内で一番上に表示されているカラムのpositionを上位32ビット、
-    *         一番下に表示されているカラムのpositionを下位32ビットとして
-    *         組み合わせた64ビットの数値。
-    *         Adapterがセットされていない、もしくはセットされているが
-    *         {@link ColumnLayoutAdapter#getItemCount()}が0を返す場合は-1。
-    */
-   private long getVisiblePositionRange(final ColumnLayout view) {
-      final ColumnLayoutAdapter adapter = view.getAdapter();
-      if (adapter == null) { return -1L; }
-
-      final int itemCount = adapter.getItemCount();
-      if (itemCount <= 0) { return -1L; }
-
-      final double position = (double) mScrollPosition;
-      final double viewHeight = (double) view.getHeight();
-
-      final int topmostPosition = (int) (-5.0 * position / viewHeight);
-      final int bottommostPosition = (int) (5.0 * (1.0 - position / viewHeight));
-
-      final int higher = MathUtils.clamp(topmostPosition,    0, itemCount - 1);
-      final int lower  = MathUtils.clamp(bottommostPosition, 0, itemCount - 1);
-
-      return (long) higher << 32 | (long) lower;
    }
 }
