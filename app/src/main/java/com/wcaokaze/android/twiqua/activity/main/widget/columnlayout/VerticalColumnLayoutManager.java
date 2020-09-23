@@ -283,7 +283,15 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
          final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
          if (adapter != null) {
-            adapter.onRearranged(oldPosition, newPosition);
+            if (newPosition == 2) {
+               removeColumnView(adapter, 2, 2);
+               removeColumnViewFromInternalLayout(adapter, 3, 3);
+               adapter.onRearranged(oldPosition, newPosition);
+               addColumnView(adapter, 2, 2);
+               addColumnViewIntoInternalLayout(adapter, 3, 3);
+            } else {
+               adapter.onRearranged(oldPosition, newPosition);
+            }
          }
       } else if (rearrangingColumnTop > nextColumnTop) {
          final int oldPosition = mRearrangingColumnPosition;
@@ -293,7 +301,15 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
          final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
          if (adapter != null) {
-            adapter.onRearranged(oldPosition, newPosition);
+            if (newPosition == 3) {
+               removeColumnView(adapter, 2, 2);
+               removeColumnViewFromInternalLayout(adapter, 3, 3);
+               adapter.onRearranged(oldPosition, newPosition);
+               addColumnView(adapter, 2, 2);
+               addColumnViewIntoInternalLayout(adapter, 3, 3);
+            } else {
+               adapter.onRearranged(oldPosition, newPosition);
+            }
          }
       }
    }
@@ -565,6 +581,20 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
          initializeLayoutParams(columnView);
          mInternalLayout.addView(columnView);
+      }
+   }
+
+   private void removeColumnView(final ColumnLayoutAdapter adapter,
+                                 final int startPosition, final int lastPosition)
+   {
+      for (int position = startPosition; position <= lastPosition; position++) {
+         if (BuildConfig.DEBUG) {
+            Log.i(TAG, "removing the Column View at " + position);
+         }
+
+         final VComponentInterface<?> component = adapter.getVComponentAt(position);
+         final View columnView = component.getComponentView();
+         mWrapperLayout.removeView(columnView);
       }
    }
 
