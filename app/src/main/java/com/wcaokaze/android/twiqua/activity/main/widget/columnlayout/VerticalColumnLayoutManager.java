@@ -62,6 +62,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
    private int mRearrangingColumnPosition = -1;
    private float mRearrangingColumnTop = Float.NaN;
+   private final float mRearrangingModeStartingAnimationHeight;
 
    private final int mTopMargin;
    private final float mElevation;
@@ -89,6 +90,9 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
    public VerticalColumnLayoutManager(final Context context) {
       final float density = context.getResources().getDisplayMetrics().density;
+
+      mRearrangingModeStartingAnimationHeight = 8.0f * density;
+
       mTopMargin = (int) (8.0f * density);
       mElevation = 4.0f * density;
       mPositionGap = 6.0f * density;
@@ -211,6 +215,20 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       );
 
       applyTranslationY(view);
+
+      new FloatAnimator(0.0f, mRearrangingModeStartingAnimationHeight, /* duration = */ 150L) {
+         private float mPrevValue = 0.0f;
+
+         @Override
+         public void update(final long animationTime,
+                            final float animationTimeRate,
+                            final float value)
+         {
+            mRearrangingColumnTop -= (value - mPrevValue);
+            mPrevValue = value;
+            applyTranslationY(view);
+         }
+      };
    }
 
    /* package */ final void finishRearrangingMode(final ColumnLayout view,
