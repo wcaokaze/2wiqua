@@ -430,6 +430,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       if (topmostPosition <= 3) {
          final View columnView3 = adapter.getVComponentAt(3).getComponentView();
          columnView3.setTranslationY(0.0f);
+         columnView3.setTranslationZ(3.0f * elevation);
       }
 
       for (int position = Math.max(4, topmostPosition);
