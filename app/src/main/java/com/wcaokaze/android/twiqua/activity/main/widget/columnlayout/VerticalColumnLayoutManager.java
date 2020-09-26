@@ -64,6 +64,9 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private float mRearrangingColumnTop = Float.NaN;
    private final float mRearrangingModeStartingAnimationHeight;
 
+   private int mSwappedColumnPosition = -1;
+   private float mSwappedColumnDy = Float.NaN;
+
    private final int mTopMargin;
    private final float mElevation;
    private final float mPositionGap;
@@ -294,42 +297,66 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float nextColumnTop = getTop(scrollPosition, rearrangingColumnPosition + 1, viewHeight, positionGap);
 
       if (rearrangingColumnTop < prevColumnTop) {
-         final int oldPosition = mRearrangingColumnPosition;
-         final int newPosition = oldPosition - 1;
+         final int newPosition = rearrangingColumnPosition - 1;
 
          mRearrangingColumnPosition = newPosition;
+
+         startSwappedColumnAnimation(columnLayout, rearrangingColumnPosition, prevColumnTop);
 
          final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
          if (adapter != null) {
             if (newPosition == 2) {
                removeColumnView(adapter, 2, 2);
                removeColumnViewFromInternalLayout(adapter, 3, 3);
-               adapter.onRearranged(oldPosition, newPosition);
+               adapter.onRearranged(rearrangingColumnPosition, newPosition);
                addColumnView(adapter, 2, 2);
                addColumnViewIntoInternalLayout(adapter, 3, 3);
             } else {
-               adapter.onRearranged(oldPosition, newPosition);
+               adapter.onRearranged(rearrangingColumnPosition, newPosition);
             }
          }
       } else if (rearrangingColumnTop > nextColumnTop) {
-         final int oldPosition = mRearrangingColumnPosition;
-         final int newPosition = oldPosition + 1;
+         final int newPosition = rearrangingColumnPosition + 1;
 
          mRearrangingColumnPosition = newPosition;
+
+         startSwappedColumnAnimation(columnLayout, rearrangingColumnPosition, nextColumnTop);
 
          final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
          if (adapter != null) {
             if (newPosition == 3) {
                removeColumnView(adapter, 2, 2);
                removeColumnViewFromInternalLayout(adapter, 3, 3);
-               adapter.onRearranged(oldPosition, newPosition);
+               adapter.onRearranged(rearrangingColumnPosition, newPosition);
                addColumnView(adapter, 2, 2);
                addColumnViewIntoInternalLayout(adapter, 3, 3);
             } else {
-               adapter.onRearranged(oldPosition, newPosition);
+               adapter.onRearranged(rearrangingColumnPosition, newPosition);
             }
          }
       }
+   }
+
+   private void startSwappedColumnAnimation(final ColumnLayout columnLayout,
+                                            final int swappedColumnPosition,
+                                            final float swappedColumnCurrentTop)
+   {
+      final float swappedColumnTop = getTop(mScrollPosition, swappedColumnPosition,
+            (float) columnLayout.getHeight(), mPositionGap);
+
+      mSwappedColumnPosition = swappedColumnPosition;
+      mSwappedColumnDy = swappedColumnCurrentTop - swappedColumnTop;
+
+      new FloatAnimator(mSwappedColumnDy, 0.0f, /* duration = */ 150L) {
+         @Override
+         public void update(final long animationTime,
+                            final float animationTimeRate,
+                            final float value)
+         {
+            mSwappedColumnDy = value;
+            applyTranslationY(columnLayout);
+         }
+      };
    }
 
    // ==========================================================================
@@ -368,6 +395,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
       final float scrollPosition = mScrollPosition;
       final int rearrangingColumnPosition = mRearrangingColumnPosition;
+      final int swappedColumnPosition = mSwappedColumnPosition;
 
       final long positionRange = getVisiblePositionRange(view);
       final int topmostPosition  = (int) (positionRange >> 32);
@@ -393,6 +421,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float translationY0;
       if (rearrangingColumnPosition == 0) {
          translationY0 = mRearrangingColumnTop;
+      } else if (swappedColumnPosition == 0) {
+         translationY0 = getTranslationY(scrollPosition, 0, viewHeight) + mSwappedColumnDy;
       } else {
          translationY0 = getTranslationY(scrollPosition, 0, viewHeight);
       }
@@ -406,6 +436,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float translationY1;
       if (rearrangingColumnPosition == 1) {
          translationY1 = mRearrangingColumnTop - positionGap;
+      } else if (swappedColumnPosition == 1) {
+         translationY1 = getTranslationY(scrollPosition, 1, viewHeight) + mSwappedColumnDy;
       } else {
          translationY1 = getTranslationY(scrollPosition, 1, viewHeight);
       }
@@ -421,6 +453,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float translationY2;
       if (rearrangingColumnPosition == 2) {
          translationY2 = mRearrangingColumnTop - 2.0f * positionGap;
+      } else if (swappedColumnPosition == 2) {
+         translationY2 = getTranslationY(scrollPosition, 2, viewHeight) + mSwappedColumnDy;
       } else {
          translationY2 = getTranslationY(scrollPosition, 2, viewHeight);
       }
@@ -436,6 +470,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float translationY3;
       if (rearrangingColumnPosition == 3) {
          translationY3 = mRearrangingColumnTop - 3.0f * positionGap;
+      } else if (swappedColumnPosition == 3) {
+         translationY3 = getTranslationY(scrollPosition, 3, viewHeight) + mSwappedColumnDy;
       } else {
          translationY3 = getTranslationY(scrollPosition, 3, viewHeight);
       }
@@ -460,6 +496,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
          if (position == rearrangingColumnPosition) {
             columnViewP.setTranslationY(mRearrangingColumnTop - translationY3 - 3.0f * positionGap);
+         } else if (position == swappedColumnPosition) {
+            columnViewP.setTranslationY(translationYP + mSwappedColumnDy - translationY3);
          } else {
             columnViewP.setTranslationY(translationYP - translationY3);
          }
