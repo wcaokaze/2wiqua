@@ -172,7 +172,7 @@ public final class VerticalColumnLayoutGestureDetector
                mLastMotionY = y;
 
                if (mIsRearrangingMode) {
-                  layoutManager.performRearrangingDrag(view, y, dy);
+                  layoutManager.performRearrangingDrag(view, dy);
                } else {
                   layoutManager.performDrag(view, y, dy);
                }

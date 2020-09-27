@@ -230,7 +230,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
                             final float animationTimeRate,
                             final float value)
          {
-            mRearrangingColumnTop -= (value - mPrevValue);
+            performRearrangingDrag(view, value - mPrevValue);
             mPrevValue = value;
             applyTranslationY(view);
          }
@@ -269,19 +269,26 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    }
 
    /* package */ final void performRearrangingDrag(final ColumnLayout view,
-                                                   final float y, final float dy)
+                                                   final float dy)
    {
-      final float rearrangingColumnTop = mRearrangingColumnTop - dy;
+      final float viewHeight = (float) view.getHeight();
+
+      final float rearrangingColumnTop = MathUtils.clamp(
+            mRearrangingColumnTop - dy,
+            3.0f * mPositionGap,
+            viewHeight - 3.0f * mPositionGap
+      );
+
       mRearrangingColumnTop = rearrangingColumnTop;
 
       rearrangeIfNecessary(view);
 
       if (mIsAutomaticScrolling) {
-         if (getAutoScrollVelocity((float) view.getHeight(), rearrangingColumnTop) == 0.0f) {
+         if (getAutoScrollVelocity(viewHeight, rearrangingColumnTop) == 0.0f) {
             stopAutomaticScroll();
          }
       } else {
-         if (getAutoScrollVelocity((float) view.getHeight(), rearrangingColumnTop) != 0.0f) {
+         if (getAutoScrollVelocity(viewHeight, rearrangingColumnTop) != 0.0f) {
             startAutomaticScroll();
          }
       }
