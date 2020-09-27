@@ -203,11 +203,14 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float viewHeight = (float) view.getHeight();
       final float positionGap = mPositionGap;
 
-      mRearrangingColumnPosition = getPosition(
-            scrollPosition,
-            viewHeight,
-            positionGap,
-            y
+      mRearrangingColumnPosition = MathUtils.clamp(
+            getPosition(
+                  scrollPosition,
+                  viewHeight,
+                  positionGap,
+                  y
+            ),
+            0, adapter.getItemCount() - 1
       );
 
       mRearrangingColumnTop = getTop(
