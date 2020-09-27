@@ -229,7 +229,16 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
       applyTranslationY(view);
 
-      new FloatAnimator(0.0f, mRearrangingModeStartingAnimationHeight, /* duration = */ 150L) {
+      final float animationHeight;
+      if (mRearrangingColumnTop >
+            mRearrangingDragRangeTopMargin + mRearrangingModeStartingAnimationHeight)
+      {
+         animationHeight = mRearrangingModeStartingAnimationHeight;
+      } else {
+         animationHeight = -mRearrangingModeStartingAnimationHeight;
+      }
+
+      new FloatAnimator(0.0f, animationHeight, /* duration = */ 150L) {
          private float mPrevValue = 0.0f;
 
          @Override
