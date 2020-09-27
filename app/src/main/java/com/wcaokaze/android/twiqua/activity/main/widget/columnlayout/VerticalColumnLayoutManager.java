@@ -287,6 +287,9 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    }
 
    private void rearrangeIfNecessary(final ColumnLayout columnLayout) {
+      final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
+      if (adapter == null) { return; }
+
       final float scrollPosition = mScrollPosition;
       final int rearrangingColumnPosition = mRearrangingColumnPosition;
       final float rearrangingColumnTop = mRearrangingColumnTop;
@@ -296,43 +299,41 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final float prevColumnTop = getTop(scrollPosition, rearrangingColumnPosition - 1, viewHeight, positionGap);
       final float nextColumnTop = getTop(scrollPosition, rearrangingColumnPosition + 1, viewHeight, positionGap);
 
-      if (rearrangingColumnTop < prevColumnTop) {
+      if (rearrangingColumnTop < prevColumnTop
+            && rearrangingColumnPosition > 0)
+      {
          final int newPosition = rearrangingColumnPosition - 1;
 
          mRearrangingColumnPosition = newPosition;
 
          startSwappedColumnAnimation(columnLayout, rearrangingColumnPosition, prevColumnTop);
 
-         final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
-         if (adapter != null) {
-            if (newPosition == 2) {
-               removeColumnView(adapter, 2, 2);
-               removeColumnViewFromInternalLayout(adapter, 3, 3);
-               adapter.onRearranged(rearrangingColumnPosition, newPosition);
-               addColumnView(adapter, 2, 2);
-               addColumnViewIntoInternalLayout(adapter, 3, 3);
-            } else {
-               adapter.onRearranged(rearrangingColumnPosition, newPosition);
-            }
+         if (newPosition == 2) {
+            removeColumnView(adapter, 2, 2);
+            removeColumnViewFromInternalLayout(adapter, 3, 3);
+            adapter.onRearranged(rearrangingColumnPosition, newPosition);
+            addColumnView(adapter, 2, 2);
+            addColumnViewIntoInternalLayout(adapter, 3, 3);
+         } else {
+            adapter.onRearranged(rearrangingColumnPosition, newPosition);
          }
-      } else if (rearrangingColumnTop > nextColumnTop) {
+      } else if (rearrangingColumnTop > nextColumnTop
+            && rearrangingColumnPosition < adapter.getItemCount() - 1)
+      {
          final int newPosition = rearrangingColumnPosition + 1;
 
          mRearrangingColumnPosition = newPosition;
 
          startSwappedColumnAnimation(columnLayout, rearrangingColumnPosition, nextColumnTop);
 
-         final ColumnLayoutAdapter adapter = columnLayout.getAdapter();
-         if (adapter != null) {
-            if (newPosition == 3) {
-               removeColumnView(adapter, 2, 2);
-               removeColumnViewFromInternalLayout(adapter, 3, 3);
-               adapter.onRearranged(rearrangingColumnPosition, newPosition);
-               addColumnView(adapter, 2, 2);
-               addColumnViewIntoInternalLayout(adapter, 3, 3);
-            } else {
-               adapter.onRearranged(rearrangingColumnPosition, newPosition);
-            }
+         if (newPosition == 3) {
+            removeColumnView(adapter, 2, 2);
+            removeColumnViewFromInternalLayout(adapter, 3, 3);
+            adapter.onRearranged(rearrangingColumnPosition, newPosition);
+            addColumnView(adapter, 2, 2);
+            addColumnViewIntoInternalLayout(adapter, 3, 3);
+         } else {
+            adapter.onRearranged(rearrangingColumnPosition, newPosition);
          }
       }
    }
