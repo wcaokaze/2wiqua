@@ -449,6 +449,10 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
       mWrapperLayout.setTranslationY(translationY0);
 
+      final View columnView0 = adapter.getVComponentAt(0).getComponentView();
+      columnView0.setTranslationY(0.0f);
+      columnView0.setTranslationZ(0.0f);
+
       // ----
 
       if (bottommostPosition < 1) { return; }
