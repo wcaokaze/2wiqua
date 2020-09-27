@@ -72,6 +72,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private final float mPositionGap;
 
    private boolean mIsAutomaticScrolling = false;
+   private final float mAutomaticScrollVelocity;
 
    private final AnimationFrameHandler.Callback mAutomaticScroller = new AnimationFrameHandler.Callback() {
       @Override
@@ -105,6 +106,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
       mInternalLayout = new FrameLayout(context);
       mInternalLayout.setBackgroundColor(0xffffffff);
+
+      mAutomaticScrollVelocity = 8.0f * density;
    }
 
    // ==========================================================================
@@ -372,15 +375,17 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
    // ==========================================================================
 
-   private static float getAutoScrollVelocity(final float columnLayoutHeight,
-                                              final float rearrangingColumnTop)
+   private float getAutoScrollVelocity(final float columnLayoutHeight,
+                                       final float rearrangingColumnTop)
    {
-      final float automaticScrollHeight = columnLayoutHeight * 0.2f;
+      final float margin = 3.0f * mPositionGap;
+      final float marginRemovedHeight = columnLayoutHeight - 2.0f * margin;
+      final float marginRemovedTop = rearrangingColumnTop - margin;
 
-      if (rearrangingColumnTop < automaticScrollHeight) {
-         return (rearrangingColumnTop - automaticScrollHeight) * 0.1f;
-      } else if (rearrangingColumnTop > columnLayoutHeight - automaticScrollHeight) {
-         return (rearrangingColumnTop - columnLayoutHeight + automaticScrollHeight) * 0.1f;
+      if (marginRemovedTop < marginRemovedHeight * 0.1f) {
+         return (marginRemovedTop - marginRemovedHeight * 0.1f) / (marginRemovedHeight * 0.1f) * mAutomaticScrollVelocity;
+      } else if (marginRemovedTop > marginRemovedHeight * 0.7f) {
+         return (marginRemovedTop - marginRemovedHeight * 0.7f) / (marginRemovedHeight * 0.3f) * mAutomaticScrollVelocity;
       } else {
          return 0.0f;
       }
