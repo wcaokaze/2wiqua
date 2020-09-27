@@ -562,7 +562,10 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
       final double position = (double) mScrollPosition;
       final double viewHeight = (double) view.getHeight();
 
-      final int topmostPosition = (int) (-5.0 * position / viewHeight);
+      final int topmostPosition =
+            itemCount - 1 == mRearrangingColumnPosition
+            ? (int) (-5.0 * position / viewHeight) - 1
+            : (int) (-5.0 * position / viewHeight);
       final int bottommostPosition = (int) (5.0 * (1.0 - position / viewHeight));
 
       final int higher = MathUtils.clamp(topmostPosition,    0, itemCount - 1);
