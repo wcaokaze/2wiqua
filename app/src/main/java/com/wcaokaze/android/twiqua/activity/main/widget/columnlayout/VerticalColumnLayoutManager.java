@@ -60,16 +60,18 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private float mScrollPosition = 0.0f;
    private long mVisiblePositionRange = 0L;
 
+   private final int mTopMargin;
+   private final float mElevation;
+   private final float mPositionGap;
+
    private int mRearrangingColumnPosition = -1;
    private float mRearrangingColumnTop = Float.NaN;
+   private final float mRearrangingDragRangeTopMargin;
+   private final float mRearrangingDragRangeBottomMargin;
    private final float mRearrangingModeStartingAnimationHeight;
 
    private int mSwappedColumnPosition = -1;
    private float mSwappedColumnDy = Float.NaN;
-
-   private final int mTopMargin;
-   private final float mElevation;
-   private final float mPositionGap;
 
    private boolean mIsAutomaticScrolling = false;
    private final float mAutomaticScrollVelocity;
@@ -95,19 +97,21 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    public VerticalColumnLayoutManager(final Context context) {
       final float density = context.getResources().getDisplayMetrics().density;
 
-      mRearrangingModeStartingAnimationHeight = 8.0f * density;
-
       mTopMargin = (int) (8.0f * density);
       mElevation = 4.0f * density;
       mPositionGap = 6.0f * density;
+
+      mRearrangingDragRangeTopMargin    = 3.0f * mPositionGap;
+      mRearrangingDragRangeBottomMargin = 5.0f * mPositionGap;
+      mRearrangingModeStartingAnimationHeight = 8.0f * density;
+
+      mAutomaticScrollVelocity = 8.0f * density;
 
       mWrapperLayout = new FrameLayout(context);
       mWrapperLayout.setBackgroundColor(0xffffffff);
 
       mInternalLayout = new FrameLayout(context);
       mInternalLayout.setBackgroundColor(0xffffffff);
-
-      mAutomaticScrollVelocity = 8.0f * density;
    }
 
    // ==========================================================================
@@ -278,8 +282,8 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
       final float rearrangingColumnTop = MathUtils.clamp(
             mRearrangingColumnTop - dy,
-            3.0f * mPositionGap,
-            viewHeight - 3.0f * mPositionGap
+            mRearrangingDragRangeTopMargin,
+            viewHeight - mRearrangingDragRangeBottomMargin
       );
 
       mRearrangingColumnTop = rearrangingColumnTop;
@@ -378,9 +382,9 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
    private float getAutoScrollVelocity(final float columnLayoutHeight,
                                        final float rearrangingColumnTop)
    {
-      final float margin = 3.0f * mPositionGap;
-      final float marginRemovedHeight = columnLayoutHeight - 2.0f * margin;
-      final float marginRemovedTop = rearrangingColumnTop - margin;
+      final float marginRemovedHeight = columnLayoutHeight
+            - mRearrangingDragRangeTopMargin - mRearrangingDragRangeBottomMargin;
+      final float marginRemovedTop = rearrangingColumnTop - mRearrangingDragRangeTopMargin;
 
       if (marginRemovedTop < marginRemovedHeight * 0.1f) {
          return (marginRemovedTop - marginRemovedHeight * 0.1f) / (marginRemovedHeight * 0.1f) * mAutomaticScrollVelocity;
