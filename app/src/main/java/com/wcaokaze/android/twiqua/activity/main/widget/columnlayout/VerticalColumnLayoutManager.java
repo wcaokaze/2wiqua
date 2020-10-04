@@ -169,9 +169,7 @@ public final class VerticalColumnLayoutManager extends ColumnLayoutManager {
 
    // ==========================================================================
 
-   /* package */ final void performDrag(final ColumnLayout view,
-                                        final float y, final float dy)
-   {
+   /* package */ final void performDrag(final ColumnLayout view, final float dy) {
       incrementScrollPosition(view, dy);
       applyTranslationY(view);
    }

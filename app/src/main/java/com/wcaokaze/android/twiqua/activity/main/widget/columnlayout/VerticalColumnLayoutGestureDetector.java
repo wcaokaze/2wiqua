@@ -17,15 +17,17 @@
 package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
+
+import com.wcaokaze.android.twiqua.anim.AnimationFrameHandler;
 
 public final class VerticalColumnLayoutGestureDetector
       extends ColumnLayoutGestureDetector<VerticalColumnLayoutManager>
 {
    private static final int INVALID_POINTER = -1;
+   private static final float ACCELERATION = -0.001f;
 
    private int mActivePointerId = INVALID_POINTER;
 
@@ -42,6 +44,33 @@ public final class VerticalColumnLayoutGestureDetector
    private boolean mIsRearrangingMode = false;
 
    private LongClickDetector mLongClickDetector = new LongClickDetector();
+
+   private final VelocityTracker mVelocityTracker = new VelocityTracker();
+
+   private final Settler mSettler = new Settler();
+   private final class Settler implements AnimationFrameHandler.Callback {
+      private float mLastPosition = 0.0f;
+
+      @Override
+      public void onFrame(final long timeMillis) {
+         final VelocityTracker velocityTracker = mVelocityTracker;
+
+         final float position = velocityTracker.getPosition();
+         final float dy = mLastPosition - position;
+         mLastPosition = position;
+
+         final ColumnLayout columnLayout = layoutManager.getColumnLayout();
+         if (columnLayout != null) {
+            layoutManager.performDrag(columnLayout, dy);
+         }
+
+         if (velocityTracker.getAcceleration() > 0.0f ==
+             velocityTracker.getVelocity()     > 0.0f)
+         {
+            stopSettling();
+         }
+      }
+   }
 
    public VerticalColumnLayoutGestureDetector
          (final VerticalColumnLayoutManager layoutManager, final Context context)
@@ -139,6 +168,10 @@ public final class VerticalColumnLayoutGestureDetector
             mLastMotionX = mInitialMotionX = event.getX();
             mLastMotionY = mInitialMotionY = event.getY();
             mActivePointerId = event.getPointerId(0);
+
+            stopSettling();
+            mVelocityTracker.setPosition(mLastMotionY);
+
             break;
          }
 
@@ -162,6 +195,8 @@ public final class VerticalColumnLayoutGestureDetector
                   mLastMotionY = y - mInitialMotionY > 0.0f
                         ? mInitialMotionY + mTouchSlop
                         : mInitialMotionY - mTouchSlop;
+
+                  mVelocityTracker.setPosition(mLastMotionY);
                }
             }
 
@@ -171,10 +206,12 @@ public final class VerticalColumnLayoutGestureDetector
                final float dy = mLastMotionY - y;
                mLastMotionY = y;
 
+               mVelocityTracker.setVelocityByCurrentPosition(y);
+
                if (mIsRearrangingMode) {
                   layoutManager.performRearrangingDrag(view, dy);
                } else {
-                  layoutManager.performDrag(view, y, dy);
+                  layoutManager.performDrag(view, dy);
                }
             }
 
@@ -184,16 +221,17 @@ public final class VerticalColumnLayoutGestureDetector
          case MotionEvent.ACTION_UP: {
             mLongClickDetector.cancel();
             finishRearrangingMode(view, mLastMotionY);
+
             if (mIsBeingDragged) {
+               startSettling();
             }
+
             break;
          }
 
          case MotionEvent.ACTION_CANCEL: {
             mLongClickDetector.cancel();
             finishRearrangingMode(view, mLastMotionY);
-            if (mIsBeingDragged) {
-            }
             break;
          }
 
@@ -220,6 +258,21 @@ public final class VerticalColumnLayoutGestureDetector
       mActivePointerId = INVALID_POINTER;
       mIsBeingDragged = false;
       mIsRearrangingMode = false;
+   }
+
+   private void startSettling() {
+      AnimationFrameHandler.INSTANCE.addCallback(mSettler);
+
+      final float sign = Math.signum(mVelocityTracker.getVelocity());
+      mVelocityTracker.setAcceleration(sign * ACCELERATION);
+
+      mSettler.mLastPosition = mVelocityTracker.getPosition();
+   }
+
+   private void stopSettling() {
+      AnimationFrameHandler.INSTANCE.removeCallback(mSettler);
+      mVelocityTracker.setAcceleration(0.0f);
+      mVelocityTracker.setVelocity(0.0f);
    }
 
    private void finishRearrangingMode(final ColumnLayout columnLayout, final float y) {
