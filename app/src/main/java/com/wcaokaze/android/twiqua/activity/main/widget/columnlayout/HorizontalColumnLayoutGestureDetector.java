@@ -139,6 +139,9 @@ public abstract class HorizontalColumnLayoutGestureDetector
             mLastMotionX = mInitialMotionX = event.getX();
             mLastMotionY = mInitialMotionY = event.getY();
             mActivePointerId = event.getPointerId(0);
+
+            onTouchDown(mLastMotionX, mLastMotionY);
+
             break;
          }
 
@@ -162,15 +165,21 @@ public abstract class HorizontalColumnLayoutGestureDetector
                         ? mInitialMotionX + mTouchSlop
                         : mInitialMotionX - mTouchSlop;
                   mLastMotionY = y;
+
+                  onStartDragging(mLastMotionX, mLastMotionY);
                }
             }
 
             if (mIsBeingDragged) {
                final int activePointerIndex = event.findPointerIndex(mActivePointerId);
                final float x = event.getX(activePointerIndex);
+               final float y = event.getY(activePointerIndex);
                final float dx = mLastMotionX - x;
                mLastMotionX = x;
-               layoutManager.performDrag(view, x, dx);
+
+               onDrag(x, y);
+
+               layoutManager.performDrag(view, dx);
             }
 
             break;
@@ -178,6 +187,7 @@ public abstract class HorizontalColumnLayoutGestureDetector
 
          case MotionEvent.ACTION_UP: {
             if (mIsBeingDragged) {
+               onReleaseDragging();
             }
             break;
          }
@@ -204,6 +214,11 @@ public abstract class HorizontalColumnLayoutGestureDetector
 
       return true;
    }
+
+   protected void onTouchDown(final float x, final float y) {}
+   protected void onStartDragging(final float x, final float y) {}
+   protected void onDrag(final float x, final float y) {}
+   protected void onReleaseDragging() {}
 
    private void resetTouch() {
       mActivePointerId = INVALID_POINTER;

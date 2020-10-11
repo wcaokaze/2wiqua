@@ -54,9 +54,7 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
       applyTranslationX(view);
    }
 
-   /* package */ final void performDrag(final ColumnLayout view,
-                                        final float x, final float dx)
-   {
+   /* package */ final void performDrag(final ColumnLayout view, final float dx) {
       float scrollOffset = mScrollOffset - dx;
 
       final float columnMargin = (float) view.getColumnMargin();
