@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 
 public abstract class ColumnLayoutManager {
    private int mColumnWidth = 0;
+   private int mColumnDistance = 0;
 
    @Nullable
    private ColumnLayout mColumnLayout = null;
@@ -34,7 +35,8 @@ public abstract class ColumnLayoutManager {
    protected void relayout(final ColumnLayout view) {
       final int columnMargin = view.getColumnMargin();
       final int layoutWidth = view.getWidth() - view.getPadding() * 2;
-      mColumnWidth = layoutWidth / view.getVisibleColumnCount() - columnMargin * 2;
+      mColumnDistance = layoutWidth / view.getVisibleColumnCount();
+      mColumnWidth = mColumnDistance - columnMargin * 2;
    }
 
    @CallSuper
@@ -55,5 +57,9 @@ public abstract class ColumnLayoutManager {
 
    protected final int getColumnWidth() {
       return mColumnWidth;
+   }
+
+   protected final int getColumnDistance() {
+      return mColumnDistance;
    }
 }

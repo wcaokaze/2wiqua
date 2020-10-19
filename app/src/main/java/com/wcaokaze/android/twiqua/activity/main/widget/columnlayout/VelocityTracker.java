@@ -118,6 +118,47 @@ package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout;
       mPosition = position;
    }
 
+   /**
+    * 現在の位置、速さの状態から、ちょうど指定した位置で止まるように加速度をセットします。
+    */
+   public final void setAccelerationBySettledPosition(final float settledPosition) {
+      calc();
+      mAcceleration = mVelocity * mVelocity / (settledPosition - mPosition) / -2.0f;
+   }
+
+   /**
+    * 現在の位置、速さ、加速度から速さが0になったときの位置を計算します。
+    *
+    * 速さと加速度の符号が一致している(つまり以後絶対値的に加速するのみ)場合、
+    * このメソッドは、過去に速さが0であったときの位置を返すことがあります。
+    */
+   public final float estimateSettledPosition() {
+      final float d = (float) estimateSettledDuration();
+      return mPosition + mVelocity * d + mAcceleration * d * d / 2.0f;
+   }
+
+   /**
+    * 現在の位置、速さ、加速度から速さが0になるまでに移動する距離を計算します。
+    *
+    * 速さと加速度の符号が一致している(つまり以後絶対値的に加速するのみ)場合、
+    * このメソッドは、過去に速さが0であったときから移動した距離を返すことがあります。
+    */
+   public final float estimateSettledDistance() {
+      final float d = (float) estimateSettledDuration();
+      return mVelocity * d + mAcceleration * d * d / 2.0f;
+   }
+
+   /**
+    * 現在の位置、速さ、加速度から速さが0になるまでにかかる時間(ミリ秒)を計算します。
+    *
+    * 速さと加速度の符号が一致している(つまり以後絶対値的に加速するのみ)場合、
+    * このメソッドは負の値を返すことがあります。
+    */
+   public final long estimateSettledDuration() {
+      calc();
+      return (long) (mVelocity / -mAcceleration);
+   }
+
    private void calc() {
       final long time = System.currentTimeMillis();
       final float d = (float) (time - mLastTime);

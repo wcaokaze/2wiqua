@@ -37,6 +37,8 @@ public final class FreeScrollGestureDetector extends HorizontalColumnLayoutGestu
          final float dy = mLastPosition - position;
          mLastPosition = position;
 
+         System.out.println("2wiqua currentPosition: " + position + ", currentVelocity: " + velocityTracker.getVelocity());
+
          final ColumnLayout columnLayout = layoutManager.getColumnLayout();
          if (columnLayout != null) {
             layoutManager.performDrag(columnLayout, dy);
@@ -83,7 +85,16 @@ public final class FreeScrollGestureDetector extends HorizontalColumnLayoutGestu
       final float sign = Math.signum(mVelocityTracker.getVelocity());
       mVelocityTracker.setAcceleration(sign * ACCELERATION);
 
-      mSettler.mLastPosition = mVelocityTracker.getPosition();
+      final float columnDistance = (float) layoutManager.getColumnDistance();
+      final float position = layoutManager.getScrollPosition();
+      mVelocityTracker.setPosition(position);
+      mSettler.mLastPosition = position;
+
+      final float estimatedPosition = mVelocityTracker.estimateSettledPosition();
+
+      mVelocityTracker.setAccelerationBySettledPosition(
+            columnDistance * (float) Math.round(estimatedPosition / columnDistance)
+      );
    }
 
    private void stopSettling() {

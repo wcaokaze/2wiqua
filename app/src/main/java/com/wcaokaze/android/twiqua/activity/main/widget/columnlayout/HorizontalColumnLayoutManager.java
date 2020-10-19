@@ -34,6 +34,10 @@ public final class HorizontalColumnLayoutManager extends ColumnLayoutManager {
    private long mVisiblePositionRange = 0L;
    private float mScrollOffset = 0.0f;
 
+   /* package */ final float getScrollPosition() {
+      return (float) (-mPosition * getColumnDistance()) + mScrollOffset;
+   }
+
    @Override
    protected final void relayout(final ColumnLayout view) {
       super.relayout(view);
