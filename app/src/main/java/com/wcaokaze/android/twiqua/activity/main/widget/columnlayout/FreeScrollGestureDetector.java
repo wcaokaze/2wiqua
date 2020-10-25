@@ -37,8 +37,6 @@ public final class FreeScrollGestureDetector extends HorizontalColumnLayoutGestu
          final float dy = mLastPosition - position;
          mLastPosition = position;
 
-         System.out.println("2wiqua currentPosition: " + position + ", currentVelocity: " + velocityTracker.getVelocity());
-
          final ColumnLayout columnLayout = layoutManager.getColumnLayout();
          if (columnLayout != null) {
             layoutManager.performDrag(columnLayout, dy);
