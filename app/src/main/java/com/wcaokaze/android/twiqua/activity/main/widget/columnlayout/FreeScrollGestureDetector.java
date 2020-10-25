@@ -90,9 +90,20 @@ public final class FreeScrollGestureDetector extends HorizontalColumnLayoutGestu
 
       final float estimatedPosition = mVelocityTracker.estimateSettledPosition();
 
-      mVelocityTracker.setAccelerationBySettledPosition(
-            columnDistance * (float) Math.round(estimatedPosition / columnDistance)
-      );
+      final float targetPosition
+            = columnDistance * (float) Math.round(estimatedPosition / columnDistance);
+
+      mVelocityTracker.setAccelerationBySettledPosition(targetPosition);
+
+      if (Math.abs(targetPosition - position) < columnDistance
+            && (
+                  Math.abs(mVelocityTracker.estimateSettledDuration()) > 2500L ||
+                  Math.abs(mVelocityTracker.estimateSettledPosition() - targetPosition) > columnDistance * 0.01f
+            )
+      ) {
+         mVelocityTracker.setVelocity((targetPosition - position) / 500.0f);
+         mVelocityTracker.setAccelerationBySettledPosition(targetPosition);
+      }
    }
 
    private void stopSettling() {
