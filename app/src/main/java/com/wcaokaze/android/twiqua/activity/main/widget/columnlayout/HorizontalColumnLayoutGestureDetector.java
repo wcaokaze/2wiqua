@@ -186,9 +186,7 @@ public abstract class HorizontalColumnLayoutGestureDetector
          }
 
          case MotionEvent.ACTION_UP: {
-            if (mIsBeingDragged) {
-               onReleaseDragging();
-            }
+            onReleaseDragging();
             break;
          }
 
