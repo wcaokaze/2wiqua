@@ -149,6 +149,16 @@ package com.wcaokaze.android.twiqua.activity.main.widget.columnlayout;
    }
 
    /**
+    * 現在の位置、速さ、加速度から速さが0になったときの時刻(エポックミリ秒)を計算します。
+    *
+    * 速さと加速度の符号が一致している(つまり以後絶対値的に加速するのみ)場合、
+    * このメソッドは過去の時刻を返すことがあります。
+    */
+   public final long estimateSettledTime() {
+      return System.currentTimeMillis() + estimateSettledDuration();
+   }
+
+   /**
     * 現在の位置、速さ、加速度から速さが0になるまでにかかる時間(ミリ秒)を計算します。
     *
     * 速さと加速度の符号が一致している(つまり以後絶対値的に加速するのみ)場合、

@@ -21,8 +21,8 @@ import android.content.Context
 import android.os.Bundle
 import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.ColumnLayout
 import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.ColumnLayoutAdapter
-import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.FreeScrollGestureDetector
 import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.HorizontalColumnLayoutManager
+import com.wcaokaze.android.twiqua.activity.main.widget.columnlayout.NormalScrollGestureDetector
 import koshian.*
 import vue.*
 import vue.koshian.*
@@ -65,7 +65,7 @@ class MainActivity : Activity() {
    }
 
    private val columnLayoutGestureDetector by lazy {
-      FreeScrollGestureDetector(columnLayoutManager, this)
+      NormalScrollGestureDetector(columnLayoutManager, this)
    }
 
    override fun onCreate(savedInstanceState: Bundle?) {
