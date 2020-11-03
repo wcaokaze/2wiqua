@@ -50,12 +50,12 @@ public final class VerticalColumnLayoutGestureDetector
    private final Settler mSettler = new Settler();
    private final class Settler implements AnimationFrameHandler.Callback {
       private float mLastPosition = 0.0f;
+      private long mSettledTime = 0L;
+      private float mSettledPosition = 0.0f;
 
       @Override
       public void onFrame(final long timeMillis) {
-         final VelocityTracker velocityTracker = mVelocityTracker;
-
-         final float position = velocityTracker.getPosition();
+         final float position = mVelocityTracker.getPosition();
          final float dy = mLastPosition - position;
          mLastPosition = position;
 
@@ -64,9 +64,10 @@ public final class VerticalColumnLayoutGestureDetector
             layoutManager.performDrag(columnLayout, dy);
          }
 
-         if (velocityTracker.getAcceleration() > 0.0f ==
-             velocityTracker.getVelocity()     > 0.0f)
-         {
+         if (System.currentTimeMillis() > mSettledTime) {
+            if (columnLayout != null) {
+               layoutManager.performDrag(columnLayout, mSettledPosition - mLastPosition);
+            }
             stopSettling();
          }
       }
@@ -261,12 +262,13 @@ public final class VerticalColumnLayoutGestureDetector
    }
 
    private void startSettling() {
-      AnimationFrameHandler.INSTANCE.addCallback(mSettler);
-
       final float sign = Math.signum(mVelocityTracker.getVelocity());
       mVelocityTracker.setAcceleration(sign * ACCELERATION);
 
       mSettler.mLastPosition = mVelocityTracker.getPosition();
+      mSettler.mSettledTime = mVelocityTracker.estimateSettledTime();
+      mSettler.mSettledPosition = mVelocityTracker.estimateSettledPosition();
+      AnimationFrameHandler.INSTANCE.addCallback(mSettler);
    }
 
    private void stopSettling() {

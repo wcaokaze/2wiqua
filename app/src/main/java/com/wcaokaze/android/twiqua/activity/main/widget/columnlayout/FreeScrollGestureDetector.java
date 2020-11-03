@@ -28,23 +28,24 @@ public final class FreeScrollGestureDetector extends HorizontalColumnLayoutGestu
    private final Settler mSettler = new Settler();
    private final class Settler implements AnimationFrameHandler.Callback {
       private float mLastPosition = 0.0f;
+      private long mSettledTime = 0L;
+      private float mSettledPosition = 0.0f;
 
       @Override
       public void onFrame(final long timeMillis) {
-         final VelocityTracker velocityTracker = mVelocityTracker;
-
-         final float position = velocityTracker.getPosition();
-         final float dy = mLastPosition - position;
+         final float position = mVelocityTracker.getPosition();
+         final float dx = mLastPosition - position;
          mLastPosition = position;
 
          final ColumnLayout columnLayout = layoutManager.getColumnLayout();
          if (columnLayout != null) {
-            layoutManager.performDrag(columnLayout, dy);
+            layoutManager.performDrag(columnLayout, dx);
          }
 
-         if (velocityTracker.getAcceleration() > 0.0f ==
-             velocityTracker.getVelocity()     > 0.0f)
-         {
+         if (System.currentTimeMillis() > mSettledTime) {
+            if (columnLayout != null) {
+               layoutManager.performDrag(columnLayout, mSettledPosition - mLastPosition);
+            }
             stopSettling();
          }
       }
@@ -78,15 +79,12 @@ public final class FreeScrollGestureDetector extends HorizontalColumnLayoutGestu
    }
 
    private void startSettling() {
-      AnimationFrameHandler.INSTANCE.addCallback(mSettler);
-
       final float sign = Math.signum(mVelocityTracker.getVelocity());
       mVelocityTracker.setAcceleration(sign * ACCELERATION);
 
       final float columnDistance = (float) layoutManager.getColumnDistance();
       final float position = layoutManager.getScrollPosition();
       mVelocityTracker.setPosition(position);
-      mSettler.mLastPosition = position;
 
       final float estimatedPosition = mVelocityTracker.estimateSettledPosition();
 
@@ -104,6 +102,11 @@ public final class FreeScrollGestureDetector extends HorizontalColumnLayoutGestu
          mVelocityTracker.setVelocity((targetPosition - position) / 500.0f);
          mVelocityTracker.setAccelerationBySettledPosition(targetPosition);
       }
+
+      mSettler.mLastPosition = position;
+      mSettler.mSettledTime = mVelocityTracker.estimateSettledTime();
+      mSettler.mSettledPosition = targetPosition;
+      AnimationFrameHandler.INSTANCE.addCallback(mSettler);
    }
 
    private void stopSettling() {
